@@ -86,16 +86,19 @@ export function AppHeader() {
   return (
     <div>
       <header className={cn(
-        "h-16 bg-card border-b border-border px-6 py-2 flex items-center justify-end  shadow-sm z-30",
+        "h-16 bg-card border-b border-border px-6 py-2 flex items-center justify-between  shadow-sm z-30",
         "transition-all duration-300 ease-in-out",
         "fixed ",
         // Ajuste basado en el estado del sidebar
       )}
         style={{
-          width:  '-webkit-fill-available',
+          width: '-webkit-fill-available',
 
         }}>
+        <div className="flex items-center gap-4">
+          <SidebarTrigger />
         
+        </div>
 
         <div className="flex items-center gap-4">
           <DropdownMenu>

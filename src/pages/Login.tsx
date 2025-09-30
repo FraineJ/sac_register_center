@@ -171,13 +171,13 @@ const Login = () => {
           <div className="px-8 md:px-14 lg:px-20">
             <div className="inline-flex items-center gap-2 text-cyan-200/90 text-xs uppercase tracking-wider">
               <span className="h-2 w-2 rounded-full bg-cyan-300" />
-              Plataforma telemática
+              Sac register
             </div>
             <h2 className="mt-3 text-3xl lg:text-4xl font-semibold text-white leading-tight">
-              Gestiona tu flota con <span className="text-cyan-300">datos en tiempo real</span>
+              Expertos en <span className="text-cyan-300">inspección y certificación naval</span>
             </h2>
             <p className="mt-3 text-white/80 max-w-xl">
-              Ubicaciones, alertas y eficiencia energética en un solo lugar.
+              Garantizamos la seguridad y cumplimiento normativo de tu flota marítima.
             </p>
           </div>
         </div>
