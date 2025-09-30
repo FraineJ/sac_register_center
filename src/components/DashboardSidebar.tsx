@@ -49,7 +49,7 @@ export function DashboardSidebar({ className }: SidebarProps) {
           </div>
           {!collapsed && (
             <span className="text-lg font-medium text-secondary-foreground">
-              Ingenaren
+              Sac register
             </span>
           )}
         </div>
