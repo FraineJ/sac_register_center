@@ -1,0 +1,150 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+@layer base {
+  :root {
+    /* Main backgrounds */
+    --background: 0 0% 96%;
+    /* #F5F5F5 - main content background */
+    --foreground: 0 0% 13%;
+    /* #222222 - primary text */
+
+    /* White surfaces */
+    --card: 0 0% 100%;
+    /* #FFFFFF - white cards and sidebar */
+    --card-foreground: 0 0% 13%;
+    /* #222222 */
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 13%;
+
+    /* Purple brand colors - Ingenaren primary */
+    --primary: 213, 64%, 15%;
+    /* #6C63FF - main purple */
+    --primary-foreground: 0 0% 100%;
+    /* white text on purple */
+    --primary-gradient-start: 248 100% 70%;
+    /* #6C63FF */
+    --primary-gradient-end: 256 67% 60%;
+    /* #7A52E0 */
+
+    /* Gray text hierarchy */
+    --secondary: 0 0% 94%;
+    /* #F0F0F0 - light gray backgrounds */
+    --secondary-foreground: 0 0% 20%;
+    /* #333333 - dark gray text */
+
+    --muted: 0 0% 93%;
+    /* #ECECEC - muted backgrounds */
+    --muted-foreground: 0 0% 47%;
+    /* #777777 - light gray text */
+
+    --accent: 0 0% 96%;
+    --accent-foreground: 0 0% 27%;
+    /* #444444 - medium gray text */
+
+    /* Status colors */
+    --success: 122 33% 45%;
+    /* #66BB6A - green */
+    --success-foreground: 122 39% 24%;
+    /* #388E3C - dark green */
+    --success-light: 122 31% 91%;
+    /* #E8F5E9 - light green bg */
+
+    --warning: 36 100% 57%;
+    /* #FFA726 - orange */
+    --warning-foreground: 33 100% 49%;
+    /* #FB8C00 - dark orange */
+    --warning-light: 36 100% 94%;
+    /* #FFF8E1 - light orange bg */
+
+    --info: 213 77% 60%;
+    /* #5A8DEE - blue */
+    --info-foreground: 0 0% 100%;
+
+    --active-green: 134 55% 40%;
+    /* #2E7D32 - active status green */
+    --active-green-bg: 134 41% 88%;
+    /* #DFF6E0 - active status bg */
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    /* UI elements */
+    --border: 250 15% 80%;
+    /* #E3E3E3 - subtle borders */
+    --input: 0 0% 70%;
+    /* #F0F0F0 - input backgrounds */
+    --ring: 248 100% 70%;
+    /* focus ring same as primary */
+
+    --radius: 0.5rem;
+    /* 8px default radius */
+
+    --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
