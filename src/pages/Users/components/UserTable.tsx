@@ -58,8 +58,8 @@ export function UserTable({ users, onEdit, onDelete, onToggleBlock, onAddNew }: 
           <p className="text-muted-foreground">Administra los usuarios del sistema</p>
         </div>
         <Button
+          variant="default"
           onClick={onAddNew}
-          className="bg-primary text-primary-foreground hover:bg-primary/90"
         >
           <UserPlus className="h-4 w-4 mr-2" />
           Nuevo Usuario
@@ -102,9 +102,8 @@ export function UserTable({ users, onEdit, onDelete, onToggleBlock, onAddNew }: 
                     <TableHead>name</TableHead>
                     <TableHead>Documento</TableHead>
                     <TableHead>Cargo</TableHead>
-                    <TableHead>Salario</TableHead>
                     <TableHead>Estado</TableHead>
-                    <TableHead>Fecha Registro</TableHead>
+                    <TableHead className="text-center">Fecha Registro</TableHead>
                     <TableHead className="text-center">Acciones</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -127,9 +126,6 @@ export function UserTable({ users, onEdit, onDelete, onToggleBlock, onAddNew }: 
                       </TableCell>
                       <TableCell>
                         <div className="text-sm">{user.role.name ?? ""}</div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="text-sm font-medium">{formatCurrency(user.salary ?? "0")}</div>
                       </TableCell>
                       <TableCell>
                         <Badge

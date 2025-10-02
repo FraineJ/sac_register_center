@@ -4,11 +4,10 @@ export interface IUser {
   last_name: string | null;
   phone_number: string | null;
   email: string;
-  role_id: number;
+  role_id: number | null;
   businessId: number;
   documentType: string;
   identification: string;
-  salary: string;
   working_days?: number;
   rest_days?: number;
   status?: string;

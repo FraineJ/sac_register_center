@@ -6,17 +6,16 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Upload, Ship, Plus, Edit, Trash2, ArrowLeft, ImageIcon } from 'lucide-react';
-import { IClient, IVessel } from '../interfaces/client.interface';
+import { IClient, IVessel, PersonType, DocumentType } from '../interfaces/client.interface';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tariff } from '@/pages/tarifario/interfaces/tarifario.interface';
-import { tariffService } from '@/services/tariff.service';
 
 interface ClientFormProps {
   client: IClient | null;
   onSubmit: (clientData: IClient) => void;
   onCancel: () => void;
 }
+
 
 export function ClientForm({ client, onSubmit, onCancel }: ClientFormProps) {
   const { toast } = useToast();
@@ -27,14 +26,19 @@ export function ClientForm({ client, onSubmit, onCancel }: ClientFormProps) {
     email: '',
     identification: '',
     phone: '',
-    address: ''
+    address: '',
+    personType: 'natural' as PersonType, // Nuevo campo: tipo de persona
+    documentType: 'cedula_ciudadania' as DocumentType // Nuevo campo: tipo de documento
   });
+  
   const [vessels, setVessels] = useState<IVessel[]>([]);
   const [editingVessel, setEditingVessel] = useState<IVessel | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  
   const vesselTypes = [
     "Carguero", "Petrolero", "Contenedor", "Pesquero", "Crucero", "Ferry", "Remolcador"
   ];
+  
   const [vesselForm, setVesselForm] = useState({
     name: '',
     capacity: 0,
@@ -44,7 +48,20 @@ export function ClientForm({ client, onSubmit, onCancel }: ClientFormProps) {
     gps: false,
     documentation: ''
   });
-  const [tariffs, setTariffs] = useState<Tariff[]>([]);
+  
+
+  // Opciones de tipo de documento según el tipo de persona
+  const documentTypes = {
+    natural: [
+      { value: 'cedula_ciudadania', label: 'Cédula de Ciudadanía' },
+      { value: 'cedula_extranjeria', label: 'Cédula de Extranjería' },
+      { value: 'pasaporte', label: 'Pasaporte' }
+    ],
+    juridica: [
+      { value: 'nit', label: 'NIT' },
+      { value: 'otros', label: 'Otros' }
+    ]
+  };
 
   useEffect(() => {
     if (client) {
@@ -55,20 +72,38 @@ export function ClientForm({ client, onSubmit, onCancel }: ClientFormProps) {
         email: client.email,
         identification: client.identification,
         phone: client.phone,
-        address: client.address || ''
+        address: client.address || '',
+        personType: client.personType || 'natural',
+        documentType: client.documentType || 'cedula_ciudadania'
       });
       setVessels(client.vessels);
     }
-    listTariff()
   }, [client]);
+
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
 
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSelectChange = (name: string, value: string) => {
+    setFormData(prev => ({ 
+      ...prev, 
+      [name]: value 
+    }));
+
+    // Si cambia el tipo de persona, resetear el tipo de documento al valor por defecto
+    if (name === 'personType') {
+      const defaultDocumentType = value === 'natural' ? 'cedula_ciudadania' : 'nit';
+      setFormData(prev => ({ 
+        ...prev, 
+        personType: value as PersonType,
+        documentType: defaultDocumentType as DocumentType
+      }));
+    }
   };
 
   const handleVesselInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -77,6 +112,10 @@ export function ClientForm({ client, onSubmit, onCancel }: ClientFormProps) {
       ...prev,
       [name]: name === 'capacity' ? parseInt(value) || 0 : value
     }));
+  };
+
+  const handleVesselSelectChange = (name: string, value: string) => {
+    setVesselForm(prev => ({ ...prev, [name]: value }));
   };
 
   const handleAddVessel = () => {
@@ -156,7 +195,9 @@ export function ClientForm({ client, onSubmit, onCancel }: ClientFormProps) {
           email: '',
           identification: '',
           phone: '',
-          address: ''
+          address: '',
+          personType: 'natural',
+          documentType: 'cedula_ciudadania'
         });
         setVessels([]);
         setUploadedImage(null);
@@ -241,31 +282,9 @@ export function ClientForm({ client, onSubmit, onCancel }: ClientFormProps) {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSelectChange = (name: string, value: string) => {
-    setVesselForm(prev => ({ ...prev, [name]: value }));
-  };
-
-  const listTariff = async () => {
-    try {
-      const response = await tariffService.list();
-
-      // Opción 1: Verificación simple
-      setTariffs(response.data || []);
-
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: error.response?.data?.message || "No se pudieron cargar las tarifas",
-        variant: "destructive",
-      });
-    } finally {
-      // setIsLoading(false);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-background p-6">
-      <div className="mb-6 flex gap-2">
+      <div className="mb-2 flex gap-2">
         <Button variant="outline" onClick={onCancel} className="gap-2 mb-4">
           <ArrowLeft className="h-4 w-4" />
         </Button>
@@ -273,7 +292,6 @@ export function ClientForm({ client, onSubmit, onCancel }: ClientFormProps) {
           {client ? 'Editar Cliente' : 'Registro de clientes y embarcaciones'}
         </h1>
       </div>
-
 
       {/* Client Information */}
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-8 mb-4">
@@ -344,42 +362,83 @@ export function ClientForm({ client, onSubmit, onCancel }: ClientFormProps) {
 
             <CardContent className="space-y-6">
               <form onSubmit={handleSubmit}>
-                {/* Client Name */}
-                <div className='flex row gap-2'>
+                {/* Tipo de Persona y Tipo de Documento */}
+                <div className='flex row gap-2 mb-2'>
                   <div className="space-y-2 w-full">
-                    <Label htmlFor="clientName">Nombre del cliente *</Label>
+                    <Label htmlFor="personType">Tipo de Persona *</Label>
+                    <Select
+                      name="personType"
+                      value={formData.personType}
+                      onValueChange={(value) => handleSelectChange('personType', value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleccione el tipo de persona" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="natural">Persona Natural</SelectItem>
+                        <SelectItem value="juridica">Persona Jurídica</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2 w-full">
+                    <Label htmlFor="documentType">Tipo de Documento *</Label>
+                    <Select
+                      name="documentType"
+                      value={formData.documentType}
+                      onValueChange={(value) => handleSelectChange('documentType', value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleccione el tipo de documento" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {documentTypes[formData.personType].map((docType) => (
+                          <SelectItem key={docType.value} value={docType.value}>
+                            {docType.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {/* Client Name */}
+                <div className='flex row gap-2 mb-2'>
+                  <div className="space-y-2 w-full">
+                    <Label htmlFor="clientName">
+                      {formData.personType === 'natural' ? 'Nombre Completo *' : 'Razón Social *'}
+                    </Label>
                     <Input
                       id="clientName"
                       name="clientName"
                       value={formData.clientName}
                       onChange={handleInputChange}
-                      placeholder="Ingrese el nombre"
+                      placeholder={
+                        formData.personType === 'natural' 
+                          ? "Ingrese el nombre completo" 
+                          : "Ingrese la razón social"
+                      }
                       className={errors.clientName ? "border-destructive w-full" : "w-full"}
                     />
                     {errors.clientName && <p className="text-sm text-destructive">{errors.clientName}</p>}
-
                   </div>
 
                   {/* Identification */}
                   <div className="space-y-2 w-full">
-                    <Label htmlFor="identification">Identificación *</Label>
+                    <Label htmlFor="identification">Número de Documento *</Label>
                     <Input
                       id="identification"
                       name="identification"
                       value={formData.identification}
                       onChange={handleInputChange}
-                      placeholder="Ingrese el número de identificación"
+                      placeholder="Ingrese el número de documento"
                       className={errors.identification ? "border-destructive w-full" : "w-full"}
-
                     />
                     {errors.identification && <p className="text-sm text-destructive">{errors.identification}</p>}
-
                   </div>
                 </div>
 
-
-                <div className='flex row gap-2'>
-
+                <div className='flex row gap-2 mb-2'>
                   {/* Email */}
                   <div className="space-y-2 w-full">
                     <Label htmlFor="email">Correo electrónico *</Label>
@@ -390,10 +449,9 @@ export function ClientForm({ client, onSubmit, onCancel }: ClientFormProps) {
                       value={formData.email}
                       onChange={handleInputChange}
                       placeholder="Ingrese el correo electrónico"
-                      className={errors.identification ? "border-destructive w-full" : "w-full"}
+                      className={errors.email ? "border-destructive w-full" : "w-full"}
                     />
                     {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
-
                   </div>
 
                   {/* Phone */}
@@ -410,10 +468,8 @@ export function ClientForm({ client, onSubmit, onCancel }: ClientFormProps) {
                   </div>
                 </div>
 
-
-
                 {/* Description */}
-                <div className="space-y-2">
+                <div className="space-y-2 mb-2">
                   <Label htmlFor="description">Descripción</Label>
                   <Textarea
                     id="description"
@@ -490,8 +546,6 @@ export function ClientForm({ client, onSubmit, onCancel }: ClientFormProps) {
 
                     {/* Add/Edit Vessel Form */}
                     <div className="space-y-4 p-4 border rounded-lg bg-muted/20">
-
-
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
                           <Label htmlFor="vesselName">Nombre de la embarcación</Label>
@@ -503,18 +557,6 @@ export function ClientForm({ client, onSubmit, onCancel }: ClientFormProps) {
                             placeholder="Nombre de la embarcación"
                           />
                         </div>
-
-                        {/* <div className="space-y-2">
-                          <Label htmlFor="capacity">Capacidad</Label>
-                          <Input
-                            id="capacity"
-                            name="capacity"
-                            type="number"
-                            value={vesselForm.capacity}
-                            onChange={handleVesselInputChange}
-                            placeholder="Capacidad"
-                          />
-                        </div> */}
 
                         <div className="space-y-2">
                           <Label htmlFor="characteristics">Identificación</Label>
@@ -532,7 +574,7 @@ export function ClientForm({ client, onSubmit, onCancel }: ClientFormProps) {
                           <Select
                             name="equipment"
                             value={vesselForm.equipment}
-                            onValueChange={(value) => handleSelectChange('equipment', value)}
+                            onValueChange={(value) => handleVesselSelectChange('equipment', value)}
                           >
                             <SelectTrigger>
                               <SelectValue placeholder="Seleccione el tipo de embarcación" />
@@ -546,9 +588,7 @@ export function ClientForm({ client, onSubmit, onCancel }: ClientFormProps) {
                             </SelectContent>
                           </Select>
                           {errors.type && <p className="text-sm text-destructive">{errors.type}</p>}
-
                         </div>
-
 
                         <div className="space-y-2">
                           <Label htmlFor="documentation">Armador</Label>
@@ -560,31 +600,9 @@ export function ClientForm({ client, onSubmit, onCancel }: ClientFormProps) {
                             placeholder="Nombre del armador"
                           />
                         </div>
-
-
                       </div>
 
-                      <div className="space-y-2 w-full">
-                        <Label htmlFor="equipment">Tarifario</Label>
-                        <Select
-                          name="tariff"
-                          value={vesselForm.equipment}
-                          onValueChange={(value) => handleSelectChange('equipment', value)}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Seleccione la tarifa" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {tariffs.map((type) => (
-                              <SelectItem key={type.id} value={type.id.toString()}>
-                                {type.code} -  {type.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        {errors.type && <p className="text-sm text-destructive">{errors.type}</p>}
-
-                      </div>
+                  
                       <Button type="button" onClick={handleAddVessel} className="gap-2">
                         <Plus className="h-4 w-4" />
                         {editingVessel ? 'Actualizar embarcación' : 'Añadir embarcación'}
@@ -602,7 +620,6 @@ export function ClientForm({ client, onSubmit, onCancel }: ClientFormProps) {
                     {client ? 'Actualizar Cliente' : 'Guardar'}
                   </Button>
                 </div>
-
               </form>
             </CardContent>
           </Card>

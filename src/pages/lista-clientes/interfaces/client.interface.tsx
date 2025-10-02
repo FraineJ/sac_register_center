@@ -1,3 +1,6 @@
+export type PersonType = 'natural' | 'juridica';
+export type DocumentType = 'cedula_ciudadania' | 'cedula_extranjeria' | 'pasaporte' | 'nit' | 'otros';
+
 export interface IVessel {
   id: string;
   name: string;
@@ -7,6 +10,7 @@ export interface IVessel {
   equipment: string;
   gps: boolean;
   documentation: string;
+
 }
 
 export interface IClient {
@@ -20,4 +24,6 @@ export interface IClient {
   address?: string;
   vessels: IVessel[];
   createdAt?: string;
+  personType: PersonType,
+  documentType: DocumentType
 }

@@ -32,7 +32,6 @@ export function UserForm({ user, onSubmit, onCancel }: UserFormProps) {
     role_id: 0,
     documentType: 'CC',
     identification: '',
-    salary: '0'
   });
 
   const [roles, setRoles] = useState<Role[]>([]);
@@ -53,7 +52,6 @@ export function UserForm({ user, onSubmit, onCancel }: UserFormProps) {
           role_id: user.role_id,
           documentType: user.documentType || 'CC',
           identification: user.identification || '',
-          salary: user.salary || '0',
         });
       }
       setIsFormReady(true); // Marcar formulario como listo
@@ -93,7 +91,6 @@ export function UserForm({ user, onSubmit, onCancel }: UserFormProps) {
         phone_number: formData.phone_number || null,
         documentType: formData.documentType,
         identification: formData.identification,
-        salary: formData.salary || '0',
       };
 
       let response;
@@ -177,7 +174,7 @@ export function UserForm({ user, onSubmit, onCancel }: UserFormProps) {
             </Button>
             <h1 className="text-3xl font-bold text-foreground">Usuario</h1>
           </div>
-          
+
         </div>
       </div>
 
@@ -281,15 +278,15 @@ export function UserForm({ user, onSubmit, onCancel }: UserFormProps) {
                 <div className="space-y-2">
                   <Label htmlFor="role_id">Rol <small>(Cargo)</small> *</Label>
                   <Select
-                    value={formData.role_id.toString()} // Convertir a string
-                    onValueChange={(value) => handleInputChange('role_id', parseInt(value))} // Convertir a número
+                    value={formData.role_id !== 0 ? String(formData.role_id) : undefined}
+                    onValueChange={(value) => handleInputChange('role_id', parseInt(value))}
                   >
                     <SelectTrigger className={errors.role_id ? "border-destructive" : ""}>
                       <SelectValue placeholder={loadingRoles ? "Cargando roles..." : "Seleccione un rol"} />
                     </SelectTrigger>
                     <SelectContent>
                       {roles.map((role) => (
-                        <SelectItem key={role.id} value={role.id.toString()}> {/* Los valores deben ser string */}
+                        <SelectItem key={role.id} value={String(role.id)}>
                           {role.name}
                         </SelectItem>
                       ))}
@@ -297,25 +294,13 @@ export function UserForm({ user, onSubmit, onCancel }: UserFormProps) {
                   </Select>
                   {errors.role_id && <p className="text-sm text-destructive">{errors.role_id}</p>}
                 </div>
-
-                {/* Salario */}
-                <div className="space-y-2">
-                  <Label htmlFor="salary">Salario (día)</Label>
-                  <Input
-                    id="salary"
-                    type="number"
-                    value={formData.salary}
-                    onChange={(e) => handleInputChange('salary', e.target.value)}
-                    placeholder="Ingrese el salario"
-                  />
-                </div>
               </div>
 
 
 
               {/* Botones */}
               <div className="flex gap-4 pt-6 justify-end">
-                
+
                 <Button
                   type="button"
                   variant="outline"
