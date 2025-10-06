@@ -22,6 +22,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { ToastAction } from '@radix-ui/react-toast';
 import FleetDetails from './components/FleetDetails';
+import { clientService } from '@/services/client.services';
+import { IClient } from '../lista-clientes/interfaces/client.interface';
 
 
 interface IDocument {
@@ -39,7 +41,6 @@ interface IFleet {
   flag: string,
   type: string,
   capacity: number,
-  isOwner: string,
   documents: IDocument[],
   image: File | null,
   status?: string,
@@ -64,16 +65,16 @@ const Fleet = () => {
     }
   ]);
   const [loading, setLoading] = useState(false);
-
+  const [clients, setClients] = useState<IClient[]>([]);
   const [formData, setFormData] = useState({
     name: '',
     identification: '',
     flag: '',
     type: '',
     capacity: '',
-    isOwner: '',
     documents: [],
-    image: null as File | null
+    image: null as File | null,
+    armador: ''
   });
 
   const [errors, setErrors] = useState({
@@ -81,11 +82,11 @@ const Fleet = () => {
     identification: '',
     flag: '',
     type: '',
-    isOwner: '',
+    armador: ''
   });
 
   useEffect(() => {
-
+    listClient();
     listFleet();
   }, []);
 
@@ -149,9 +150,7 @@ const Fleet = () => {
     "Radar", "GPS", "Sonar", "Radio VHF", "AIS", "EPIRB", "Sistemas de navegación"
   ];
 
-  const isOwner = [
-    "Si", "No",
-  ];
+ 
 
   const addDocument = () => {
     // Validar documentos actuales antes de agregar uno nuevo
@@ -197,10 +196,10 @@ const Fleet = () => {
   const validateForm = () => {
     const newErrors = {
       name: !formData.name ? 'El nombre es requerido' : '',
-      identification: !formData.identification ? 'La identificación es requerida' : '',
+      identification: !formData.identification ? 'La matricula es requerida' : '',
       flag: !formData.flag ? 'La bandera es requerida' : '',
       type: !formData.type ? 'El tipo de embarcación es requerido' : '',
-      isOwner: !formData.isOwner ? 'Debe especificar si es propia' : ''
+      armador: !formData.armador ? 'Debe seleccionar un armador' : ''
     };
 
     setErrors(newErrors);
@@ -238,7 +237,6 @@ const Fleet = () => {
 
     try {
       const formDataToSend = new FormData();
-      const isOwnerBoolean = formData.isOwner === "Si";
 
       // Filtrar documentos válidos (con archivo y fecha)
       const validDocuments = documents.filter(doc => doc.file && doc.expirationDate);
@@ -251,7 +249,7 @@ const Fleet = () => {
         flag: formData.flag,
         type: formData.type,
         capacity: formData.capacity,
-        isOwner: isOwnerBoolean,
+        user_id: formData.armador,
         documents: validDocuments.map(doc => ({
           name: doc.file.name,
           type: doc.file.type,
@@ -259,7 +257,6 @@ const Fleet = () => {
         }))
       };
 
-      console.log("data ", vesselData);
 
       // Agregar imagen si existe
       if (formData.image) {
@@ -377,9 +374,9 @@ const Fleet = () => {
       flag: '',
       type: '',
       capacity: '',
-      isOwner: '',
       documents: [],
-      image: null
+      image: null,
+      armador: ''
     });
     setSelectedFiles(null);
     setUploadedImage(null);
@@ -396,9 +393,9 @@ const Fleet = () => {
       flag: vessel.flag,
       type: vessel.type,
       capacity: vessel.capacity.toString(),
-      isOwner: vessel.isOwner ? 'Si' : 'No',
       documents: vessel.documents || [],
-      image: null
+      image: null,
+      armador: vessel.armador
     });
 
     console.log("vessel.documents ", vessel.documents);
@@ -644,6 +641,16 @@ const Fleet = () => {
     return date instanceof Date && !isNaN(date.getTime());
   };
 
+
+  const listClient = async () => {
+    const response = await clientService.list();
+    if (response.status == 200 || response.status == 201) {
+
+      setClients(response.data)
+    }
+  };
+
+
   return (
     <div className="min-h-screen bg-background p-6">
       {/* Header */}
@@ -677,333 +684,367 @@ const Fleet = () => {
 
       {showForm ? (
         /* Formulario de creación/edición */
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-8">
-          {/* Left Section - Image Upload */}
-          <div className="space-y-6">
-            <Card className="h-96">
-              <CardContent className="p-3 h-full">
-                {uploadedImage ? (
-                  <div className="relative h-full rounded-lg overflow-hidden">
-                    <img
-                      src={uploadedImage}
-                      alt="Imagen de la embarcación"
-                      className="w-full h-full object-cover"
-                    />
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      className="absolute top-2 right-2"
-                      onClick={handleDeleteImage}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ) : (
-                  <div
-                    className={`
-                      border-2 border-dashed rounded-lg h-full flex flex-col items-center justify-center
-                      transition-colors cursor-pointer
-                      ${dragActive
-                        ? 'border-primary bg-primary/5'
-                        : 'border-muted-foreground/25 hover:border-primary/50'
-                      }
-                    `}
-                    onDrop={handleDrop}
-                    onDragOver={handleDragOver}
-                    onDragLeave={handleDragLeave}
-                    onClick={() => document.getElementById('file-upload')?.click()}
-                  >
-                    <input
-                      id="file-upload"
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={handleFileSelect}
-                    />
-                    <ImageIcon className="h-12 w-12 text-muted-foreground mb-4" />
-                    <p className="text-lg font-medium text-foreground mb-2">
-                      Seleccione o arrastre un archivo
-                    </p>
-                    <p className="text-sm text-muted-foreground text-center">
-                      Arrastra y suelta archivos de imagen aquí, o haz clic para seleccionar
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Right Section - Registration Form */}
-          <div className="space-y-6">
-            <Card>
+        <div className="grid grid-cols-1">
+          <form onSubmit={handleSubmit}>
+            <Card className='mb-4'>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-primary rounded-full"></div>
                   {editingVessel ? 'Editar embarcación' : 'Nueva embarcación'}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-6">
-                <form onSubmit={handleSubmit}>
-                  <div className='flex row gap-2'>
-                    <div className="space-y-2 w-full">
-                      <Label htmlFor="name">Nombre *</Label>
-                      <Input
-                        id="name"
-                        value={formData.name}
-                        onChange={handleInputChange}
-                        placeholder="Ingrese el nombre de la embarcación"
 
-                        className={errors.name ? "border-destructive" : "w-full"}
-                      />
-                      {errors.name && <p className="text-sm text-destructive">{errors.name}</p>}
-
-                    </div>
-
-                    <div className="space-y-2 w-full">
-                      <Label htmlFor="identification">Identificación *</Label>
-                      <Input
-                        id="identification"
-                        value={formData.identification}
-                        onChange={handleInputChange}
-                        placeholder="Ingrese la identificación"
-
-                        className={errors.identification ? "border-destructive" : "w-full"}
-
-                      />
-                      {errors.identification && <p className="text-sm text-destructive">{errors.identification}</p>}
-
-                    </div>
-                  </div>
-
-                  <div className='flex row gap-2'>
-                    {/* Bandera */}
-                    <div className="space-y-2 w-full">
-                      <Label htmlFor="flag">Bandera *</Label>
-                      <Select
-                        name="flag"
-                        value={formData.flag}
-                        onValueChange={(value) => handleSelectChange('flag', value)}
-                        
-                      >
-                        <SelectTrigger  className={errors.flag ? "border-destructive" : ""}>
-                          <SelectValue placeholder="Seleccione un país" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {countries.map((country) => (
-                            <SelectItem key={country} value={country}>
-                              {country}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      {errors.flag && <p className="text-sm text-destructive">{errors.flag}</p>}
-
-                    </div>
-
-                    {/* Capacidad */}
-                    <div className="space-y-2 w-full">
-                      <Label htmlFor="capacity">Capacidad de embarcación (opcional)</Label>
-                      <Input
-                        id="capacity"
-                        value={formData.capacity}
-                        onChange={handleInputChange}
-                        type="text"
-                        placeholder="Ingrese la capacidad"
-                        className="w-full"
-                      />
+              <CardContent className="px-6 pb-6">
+                <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-6">
+                  {/* Left Section - Image Upload */}
+                  <div className="space-y-6">
+                    <div className="h-60 min-h-fit">
+                      {uploadedImage ? (
+                        <div className="relative h-full rounded-lg overflow-hidden border">
+                          <img
+                            src={uploadedImage}
+                            alt="Imagen de la embarcación"
+                            className="w-full h-full object-cover"
+                          />
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            className="absolute top-2 right-2"
+                            onClick={handleDeleteImage}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <div
+                          className={`
+                  border-2 border-dashed rounded-lg h-full flex flex-col items-center justify-center
+                  transition-colors cursor-pointer border-border
+                  ${dragActive
+                              ? 'border-primary bg-primary/5'
+                              : 'border-muted-foreground/25 hover:border-primary/50'
+                            }
+                `}
+                          onDrop={handleDrop}
+                          onDragOver={handleDragOver}
+                          onDragLeave={handleDragLeave}
+                          onClick={() => document.getElementById('file-upload')?.click()}
+                        >
+                          <input
+                            id="file-upload"
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={handleFileSelect}
+                          />
+                          <ImageIcon className="h-12 w-12 text-muted-foreground mb-4" />
+                          <p className="text-lg font-medium text-foreground mb-2">
+                            Seleccione o arrastre un archivo
+                          </p>
+                          <p className="text-sm text-muted-foreground text-center">
+                            Arrastra y suelta archivos de imagen aquí, o haz clic para seleccionar
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </div>
 
-                  <div className='flex row gap-2'>
-                    {/* Tipo de embarcación */}
-                    <div className="space-y-2 w-full">
-                      <Label htmlFor="type">Tipo de embarcación *</Label>
-                      <Select
-                        name="type"
-                        value={formData.type}
-                        onValueChange={(value) => handleSelectChange('type', value)}
-                      >
-                        <SelectTrigger className={errors.type ? "border-destructive" : ""}>
-                          <SelectValue placeholder="Seleccione el tipo de embarcación" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {vesselTypes.map((type) => (
-                            <SelectItem key={type} value={type}>
-                              {type}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      {errors.type && <p className="text-sm text-destructive">{errors.type}</p>}
+                  {/* Right Section - Registration Form */}
+                  <div className="space-y-6">
 
+                    <div className='flex flex-col lg:flex-row gap-4'>
+                      <div className="space-y-2 w-full">
+                        <Label htmlFor="name">Nombre *</Label>
+                        <Input
+                          id="name"
+                          value={formData.name}
+                          onChange={handleInputChange}
+                          placeholder="Ingrese el nombre de la embarcación"
+                          className={errors.name ? "border-destructive" : "w-full"}
+                        />
+                        {errors.name && <p className="text-sm text-destructive">{errors.name}</p>}
+                      </div>
+
+                      <div className="space-y-2 w-full">
+                        <Label htmlFor="identification">Matricula *</Label>
+                        <Input
+                          id="identification"
+                          value={formData.identification}
+                          onChange={handleInputChange}
+                          placeholder="Ingrese la matricula"
+                          className={errors.identification ? "border-destructive" : "w-full"}
+                        />
+                        {errors.identification && <p className="text-sm text-destructive">{errors.identification}</p>}
+                      </div>
                     </div>
 
-                    <div className="space-y-2 w-full">
-                      <Label htmlFor="isOwner">Embarcación propia *</Label>
-                      <Select
-                        name="isOwner"
-                        value={formData.isOwner}
-                        onValueChange={(value) => handleSelectChange('isOwner', value)}
-                      >
-                        <SelectTrigger className={errors.isOwner ? "border-destructive" : ""}>
-                          <SelectValue placeholder="Seleccione una opción" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {isOwner.map((type) => (
-                            <SelectItem key={type} value={type}>
-                              {type}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      {errors.isOwner && <p className="text-sm text-destructive">{errors.isOwner}</p>}
+                    <div className='flex flex-col lg:flex-row gap-4 mt-4'>
+                      {/* Bandera */}
+                      <div className="space-y-2 w-full">
+                        <Label htmlFor="flag">Bandera *</Label>
+                        <Select
+                          name="flag"
+                          value={formData.flag}
+                          onValueChange={(value) => handleSelectChange('flag', value)}
+                        >
+                          <SelectTrigger className={errors.flag ? "border-destructive" : ""}>
+                            <SelectValue placeholder="Seleccione un país" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {countries.map((country) => (
+                              <SelectItem key={country} value={country}>
+                                {country}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {errors.flag && <p className="text-sm text-destructive">{errors.flag}</p>}
+                      </div>
 
+                      {/* Capacidad */}
+                      <div className="space-y-2 w-full">
+                        <Label htmlFor="capacity">Capacidad de embarcación (opcional)</Label>
+                        <Input
+                          id="capacity"
+                          value={formData.capacity}
+                          onChange={handleInputChange}
+                          type="text"
+                          placeholder="Ingrese la capacidad"
+                          className="w-full"
+                        />
+                      </div>
                     </div>
+
+                    <div className='flex flex-col lg:flex-row gap-4 mt-4'>
+                      <div className="space-y-2 w-full">
+                        <Label htmlFor="armador">Seleccionar armador *</Label>
+                        <Select
+                          name="armador"
+                          value={formData.armador}
+                          onValueChange={(value) => handleSelectChange('armador', value)}
+                        >
+                          <SelectTrigger className={errors.armador ? "border-destructive" : ""}>
+                            <SelectValue placeholder="Seleccione el armador" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {clients.map((armador) => (
+                              <SelectItem key={armador.id} value={armador.id.toString()}>
+                                {armador.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {errors.armador && <p className="text-sm text-destructive">{errors.armador}</p>}
+                      </div>
+
+                      {/* Tipo de embarcación */}
+                      <div className="space-y-2 w-full">
+                        <Label htmlFor="type">Tipo de embarcación *</Label>
+                        <Select
+                          name="type"
+                          value={formData.type}
+                          onValueChange={(value) => handleSelectChange('type', value)}
+                        >
+                          <SelectTrigger className={errors.type ? "border-destructive" : ""}>
+                            <SelectValue placeholder="Seleccione el tipo de embarcación" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {vesselTypes.map((type) => (
+                              <SelectItem key={type} value={type}>
+                                {type}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {errors.type && <p className="text-sm text-destructive">{errors.type}</p>}
+                      </div>
+                    </div>
+
+                    {/* Documentos */}
+
+
                   </div>
+                </div>
+              </CardContent>
+            </Card>
 
-                  {/* Documentos */}
-                  <div className="py-4">
-                    <Label>Documentos de la embarcación</Label>
-                    <div className="space-y-3">
-                      {documents.map((docItem, index) => (
-                        <div key={docItem.id} className={`flex items-center gap-3 p-3 border rounded-lg ${(docItem.file && !docItem.expirationDate) || (!docItem.file && docItem.expirationDate)
-                          ? 'border-destructive bg-destructive/5'
-                          : 'border-border'
-                          }`}>
-                          <div className="flex-1">
-                            <div className="flex items-center gap-3">
-                              <div className="flex-1 space-y-2">
-                                <div className="flex items-center gap-2">
-                                  <Label>Documento {index + 1} *</Label>
-                                  {docItem.name && !docItem.file && (
-                                    <Badge variant="secondary" className="text-xs">
-                                      Existente: {docItem.name}
-                                    </Badge>
-                                  )}
-                                </div>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  Documentos de la embarcación
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="px-6 pb-2">
+                <div className="space-y-3 mt-4">
+                  {documents.map((docItem, index) => (
+                    <div key={docItem.id} className={`flex items-center gap-3 p-3 border rounded-lg ${(docItem.file && !docItem.expirationDate) || (!docItem.file && docItem.expirationDate)
+                      ? 'border-destructive bg-destructive/5'
+                      : 'border-border'
+                      }`}>
+                      <div className="flex-1">
+                        <div className="flex items-start gap-4">
+                          {/* Columna 1: Tipo de documento */}
+                          <div className="w-48 space-y-2">
+                            <Label>Tipo de documento *</Label>
+                            <select
+                              value={docItem.type || ''}
+                              onChange={(e) => updateDocument(docItem.id, 'type', e.target.value)}
+                              className="w-full px-3 py-2 border border-border rounded-md text-sm bg-background"
+                            >
+                              <option value="">Seleccionar tipo</option>
+                              <option value="matricula">Matrícula</option>
+                              <option value="seguro">Seguro</option>
+                              <option value="permiso_navegacion">Permiso de Navegación</option>
+                              <option value="certificado_seguridad">Certificado de Seguridad</option>
+                              <option value="titulo_navegacion">Título de Navegación</option>
+                              <option value="otro">Otro</option>
+                            </select>
+                          </div>
 
-                                <input
-                                  type="file"
-                                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.xls,.xlsx"
-                                  className="hidden"
-                                  id={`document-${docItem.id}`}
-                                  onChange={(e) => handleDocumentFileSelect(docItem.id, e)}
-                                />
+                          {/* Columna 2: Selección de archivo con tamaño limitado */}
+                          <div className="flex-1 space-y-2 min-w-0"> {/* min-w-0 previene el overflow */}
+                            <div className="flex items-center gap-2 mb-4">
+                              <Label>Documento {index + 1} *</Label>
+                              {docItem.name && !docItem.file && (
+                                <Badge variant="secondary" className="text-xs">
+                                  Existente: {docItem.name}
+                                </Badge>
+                              )}
+                            </div>
 
-                                <div className="flex gap-2">
+                            <div className="space-y-2">
+                              <input
+                                type="file"
+                                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.xls,.xlsx"
+                                className="hidden "
+                                id={`document-${docItem.id}`}
+                                onChange={(e) => handleDocumentFileSelect(docItem.id, e)}
+                              />
+
+                              <div className="flex gap-2 items-center">
+                                {/* Botón de selección de archivo con texto truncado */}
+                                <div className="flex-1 min-w-0"> {/* Contenedor que limita el crecimiento */}
                                   <Button
                                     type="button"
                                     variant="outline"
-                                    className="flex-1 justify-start"
+                                    className="w-full justify-start truncate" /* truncate para texto largo */
                                     onClick={() => window.document.getElementById(`document-${docItem.id}`)?.click()}
                                   >
-                                    <FileText className="h-4 w-4 mr-2" />
-                                    {docItem.file ? docItem.file.name : (docItem.name || 'Seleccionar archivo...')}
+                                    <FileText className="h-4 w-4 mr-2 flex-shrink-0" />
+                                    <span className="truncate">
+                                      {docItem.file ? docItem.file.name : (docItem.name || 'Seleccionar archivo...')}
+                                    </span>
                                   </Button>
-
-                                  {(docItem.file || docItem.name) && (
-                                    <Button
-                                      type="button"
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => {
-                                        updateDocument(docItem.id, 'file', null);
-                                        updateDocument(docItem.id, 'name', '');
-                                        updateDocument(docItem.id, 'type', '');
-                                      }}
-                                      className="text-destructive"
-                                    >
-                                      <Trash2 className="h-4 w-4" />
-                                    </Button>
-                                  )}
                                 </div>
 
+                                {/* Botón de eliminar (solo visible cuando hay archivo) */}
                                 {(docItem.file || docItem.name) && (
-                                  <div className="text-xs text-muted-foreground space-y-1">
-                                    <p>
-                                      {docItem.file ? `Nuevo archivo: ${docItem.type}` : `Archivo existente: ${docItem.name}`}
-                                      {docItem.file && ` • Tamaño: ${(docItem.file.size / 1024 / 1024).toFixed(2)} MB`}
-                                    </p>
-                                    {(docItem.file && !docItem.expirationDate) && (
-                                      <p className="text-destructive">⚠️ Fecha de vencimiento requerida</p>
-                                    )}
-                                  </div>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => {
+                                      updateDocument(docItem.id, 'file', null);
+                                      updateDocument(docItem.id, 'name', '');
+                                      updateDocument(docItem.id, 'type', '');
+                                    }}
+                                    className="text-destructive flex-shrink-0"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
                                 )}
                               </div>
 
-                              <div className="w-48 space-y-2">
-                                <Label>Fecha de vencimiento *</Label>
-                                <Input
-                                  type="date"
-                                  value={docItem.expirationDate}
-                                  onChange={(e) => updateDocument(docItem.id, 'expirationDate', e.target.value)}
-                                  className="text-sm"
-                                  min={new Date().toISOString().split('T')[0]}
-                                />
-                                {(!docItem.file && !docItem.name && docItem.expirationDate) && (
-                                  <p className="text-xs text-destructive">⚠️ Archivo requerido</p>
-                                )}
-                              </div>
-
-                              {documents.length > 1 && (
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => removeDocument(docItem.id)}
-                                  className="text-destructive hover:text-destructive mt-8"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
+                              {/* Información del archivo */}
+                              {(docItem.file || docItem.name) && (
+                                <div className="text-xs text-muted-foreground space-y-1">
+                                  <p className="truncate"> {/* truncate para nombres muy largos */}
+                                    {docItem.file ? `Nuevo archivo: ${docItem.type}` : `Archivo existente: ${docItem.name}`}
+                                    {docItem.file && ` • Tamaño: ${(docItem.file.size / 1024 / 1024).toFixed(2)} MB`}
+                                  </p>
+                                  {(docItem.file && !docItem.expirationDate) && (
+                                    <p className="text-destructive">Fecha de expiración requerida</p>
+                                  )}
+                                </div>
                               )}
                             </div>
                           </div>
-                        </div>
-                      ))}
 
-                      <div className="flex items-center justify-between">
-                        <div className="text-sm text-muted-foreground">
-                          {documents.filter(d => (d.file || d.name) && d.expirationDate).length} de {documents.length} documentos completos
-                        </div>
+                          {/* Columna 3: Fecha de expiración */}
+                          <div className="w-48 space-y-2">
+                            <Label>Fecha de expiración *</Label>
+                            <Input
+                              type="date"
+                              value={docItem.expirationDate}
+                              onChange={(e) => updateDocument(docItem.id, 'expirationDate', e.target.value)}
+                              className="text-sm"
+                              min={new Date().toISOString().split('T')[0]}
+                            />
+                            {(!docItem.file && !docItem.name && docItem.expirationDate) && (
+                              <p className="text-xs text-destructive">Archivo requerido</p>
+                            )}
+                          </div>
 
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={addDocument}
-                          className="flex items-center gap-2"
-                          disabled={documents.length >= 5}
-                        >
-                          <Plus className="h-4 w-4" />
-                          Agregar documento {documents.length >= 5 && '(Máximo 5)'}
-                        </Button>
+                          {/* Botón eliminar documento (solo si hay más de uno) */}
+                          {documents.length > 1 && (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => removeDocument(docItem.id)}
+                              className="text-destructive hover:text-destructive mt-6 flex-shrink-0"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  ))}
 
+                  <div className="flex items-center justify-between mt-4">
+                    <div className="text-sm text-muted-foreground">
+                      {documents.filter(d => (d.file || d.name) && d.expirationDate && d.type).length} de {documents.length} documentos completos
+                    </div>
 
-                  {/* Botones */}
-                  <div className="flex gap-3 mt-2">
                     <Button
                       type="button"
                       variant="outline"
-                      className="flex-1"
-                      onClick={resetForm}
+                      size="sm"
+                      onClick={addDocument}
+                      className="flex items-center gap-2"
+                      disabled={documents.length >= 5}
                     >
-                      Cancelar
-                    </Button>
-                    <Button
-                      type="submit"
-                      className="flex-1"
-                      disabled={loading}
-                    >
-                      {loading ? 'Guardando...' : (editingVessel ? 'Actualizar' : 'Guardar')} Embarcación
+                      <Plus className="h-4 w-4" />
+                      Agregar documento {documents.length >= 5 && '(Máximo 5)'}
                     </Button>
                   </div>
-                </form>
+                </div>
               </CardContent>
             </Card>
-          </div>
+
+
+            {/* Botones */}
+            <div className='w-full flex justify-end'>
+              <div className="flex justify-end gap-4 pt-3 ">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex-1"
+                  onClick={resetForm}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="submit"
+                  className="flex-1"
+                  disabled={loading}
+                >
+                  {loading ? 'Guardando...' : (editingVessel ? 'Actualizar' : 'Guardar')} Embarcación
+                </Button>
+              </div>
+            </div>
+          </form>
         </div>
       ) : (
         /* Tabla de Embarcaciones Registradas */
@@ -1018,7 +1059,7 @@ const Fleet = () => {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Nombre</TableHead>
-                      <TableHead>Identificación</TableHead>
+                      <TableHead>Matricula</TableHead>
                       <TableHead>Bandera</TableHead>
                       <TableHead>Tipo</TableHead>
                       <TableHead className='text-center'>Capacidad</TableHead>

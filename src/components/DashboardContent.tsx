@@ -31,7 +31,7 @@ export function DashboardContent() {
             <p className="text-3xl font-semibold mt-2 text-slate-900">250</p>
           </div>
           <div className="rounded-lg border border-slate bg-white p-5">
-            <p className="text-slate-600">Certificados vigentes</p>
+            <p className="text-slate-600">Certificados a expirar</p>
             <p className="text-3xl font-semibold mt-2 text-slate-900">75</p>
           </div>
           <div className="rounded-lg border border-slate bg-white p-5">

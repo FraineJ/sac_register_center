@@ -15,15 +15,15 @@ export interface IVessel {
 
 export interface IClient {
   id?: number;
-  companyLogo?: string;
-  clientName: string;
+  profile_picture?: string;
+  name: string;
   description: string;
   email: string;
   identification: string;
-  phone: string;
+  phone_number: string;
   address?: string;
-  vessels: IVessel[];
-  createdAt?: string;
-  personType: PersonType,
-  documentType: DocumentType
+  created_at?: string;
+  typePerson: PersonType,
+  documentType: DocumentType,
+  role_id: string
 }

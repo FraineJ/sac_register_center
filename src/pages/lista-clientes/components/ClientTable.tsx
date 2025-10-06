@@ -19,7 +19,7 @@ export function ClientTable({ clients, onCreateClient, onEditClient, onDeleteCli
   const [searchTerm, setSearchTerm] = useState('');
 
   const filteredClients = clients.filter(client =>
-    client.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     client.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
     client.identification.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -38,16 +38,16 @@ export function ClientTable({ clients, onCreateClient, onEditClient, onDeleteCli
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="space-y-2">
-              <h1 className="text-3xl font-bold text-foreground">Lista de Clientes</h1>
+              <h1 className="text-3xl font-bold text-foreground">Lista de Armador</h1>
               <p className="text-muted-foreground">
-                Gestiona la información de tus clientes y sus embarcaciones
+                Gestiona la información de tus armadores y sus embarcaciones
               </p>
             </div>
           </div>
           <div className="flex gap-3">
             <Button onClick={onCreateClient} className="gap-2">
               <Plus className="h-4 w-4" />
-              Crear Cliente
+              Crear Armador
             </Button>
 
           </div>
@@ -61,13 +61,13 @@ export function ClientTable({ clients, onCreateClient, onEditClient, onDeleteCli
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <Users className="h-5 w-5" />
-              Clientes Registrados
+              Armadores Registrados
             </CardTitle>
             <div className="flex items-center gap-4">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                 <Input
-                  placeholder="Buscar clientes..."
+                  placeholder="Buscar armadores..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10 w-64"
@@ -84,7 +84,7 @@ export function ClientTable({ clients, onCreateClient, onEditClient, onDeleteCli
             <div className="text-center py-12">
               <Users className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
               <h3 className="text-lg font-medium text-foreground mb-2">
-                {clients.length === 0 ? 'No hay clientes registrados' : 'No se encontraron clientes'}
+                {clients.length === 0 ? 'No hay armadores registrados' : 'No se encontraron armadores'}
               </h3>
               <p className="text-muted-foreground mb-4">
                 {clients.length === 0
@@ -95,7 +95,7 @@ export function ClientTable({ clients, onCreateClient, onEditClient, onDeleteCli
               {clients.length === 0 && (
                 <Button onClick={onCreateClient} className="gap-2">
                   <Plus className="h-4 w-4" />
-                  Crear Primer Cliente
+                  Crear Primer Armador
                 </Button>
               )}
             </div>
@@ -104,11 +104,10 @@ export function ClientTable({ clients, onCreateClient, onEditClient, onDeleteCli
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Cliente</TableHead>
+                    <TableHead>Armador</TableHead>
                     <TableHead>Identificación</TableHead>
                     <TableHead className='text-center'>Email</TableHead>
                     <TableHead>Teléfono</TableHead>
-                    <TableHead className='text-center'>Embarcaciones</TableHead>
                     <TableHead className='text-center'>Fecha Registro</TableHead>
                     <TableHead className="text-center">Acciones</TableHead>
                   </TableRow>
@@ -118,31 +117,24 @@ export function ClientTable({ clients, onCreateClient, onEditClient, onDeleteCli
                     <TableRow key={client.id}>
                       <TableCell>
                         <div className="flex items-center gap-3">
-                          {client.companyLogo && (
+                          {client.profile_picture && (
                             <img
-                              src={client.companyLogo}
+                              src={client.profile_picture}
                               alt="Logo"
                               className="w-8 h-8 rounded-full object-cover"
                             />
                           )}
                           <div>
-                            <div className="font-medium">{client.clientName}</div>
+                            <div className="font-medium">{client.name}</div>
                           </div>
                         </div>
                       </TableCell>
                       <TableCell>{client.identification}</TableCell>
                       <TableCell className='text-center'>{client.email}</TableCell>
-                      <TableCell>{client.phone}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Ship className="h-4 w-4 text-muted-foreground" />
-                          <Badge variant="secondary">
-                            {(client?.vessels ?? []).length} motonaves
-                          </Badge>
-                        </div>
-                      </TableCell>
+                      <TableCell>{client.phone_number}</TableCell>
+                  
                       <TableCell className='text-center'>
-                        {client.createdAt ? formatDate(client.createdAt) : '-'}
+                        {client.created_at ? formatDate(client.created_at) : '-'}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-2">
@@ -172,7 +164,7 @@ export function ClientTable({ clients, onCreateClient, onEditClient, onDeleteCli
                                 <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
                                 <AlertDialogDescription>
                                   Esta acción no se puede deshacer. Se eliminará permanentemente el cliente
-                                  <strong> {client.clientName}</strong> y todas sus embarcaciones asociadas.
+                                  <strong> {client.name}</strong> y todas sus embarcaciones asociadas.
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>

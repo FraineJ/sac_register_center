@@ -35,8 +35,8 @@ export function UserForm({ user, onSubmit, onCancel }: UserFormProps) {
   });
 
   const [roles, setRoles] = useState<Role[]>([]);
-  const [loadingRoles, setLoadingRoles] = useState(true); // Cambiado a true
-  const [isFormReady, setIsFormReady] = useState(false); // Nuevo estado
+  const [loadingRoles, setLoadingRoles] = useState(true);
+  const [isFormReady, setIsFormReady] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {

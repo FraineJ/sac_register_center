@@ -99,7 +99,7 @@ export function UserTable({ users, onEdit, onDelete, onToggleBlock, onAddNew }: 
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>name</TableHead>
+                    <TableHead>Nombre</TableHead>
                     <TableHead>Documento</TableHead>
                     <TableHead>Cargo</TableHead>
                     <TableHead>Estado</TableHead>

@@ -107,9 +107,7 @@ const FleetDetails: React.FC<FleetDetailsProps> = ({ vessel, onClose, onEdit }) 
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 {getStatusBadge(vessel.status)}
-                <Badge variant={vessel.isOwner ? 'default' : 'outline'} className="uppercase tracking-wide">
-                  {vessel.isOwner ? 'Propia' : 'Terceros'}
-                </Badge>
+              
                 {vessel.createdAt && (
                   <span className="text-sm text-muted-foreground flex items-center gap-1">
                     <Calendar className="h-4 w-4" /> Registrada: {formatDate(vessel.createdAt)}

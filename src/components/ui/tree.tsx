@@ -73,6 +73,22 @@ const TreeNodeComponent: React.FC<TreeNodeProps> = ({
     return nodeTemplate(node, { expanded, selected, level, hasChildren });
   }
 
+  // Si estás usando TypeScript
+const transformActionText = (text: string): string => {
+  switch(text) {
+    case 'LIST':
+      return 'Listar';
+    case 'CREATE':
+      return 'Guardar';
+    case 'DELETE':
+      return 'Eliminar';
+    case 'UPDATE':
+      return 'Actualizar';
+    default:
+      return text;
+  }
+};
+
   return (
     <div className="tree-node">
       <div
@@ -109,7 +125,7 @@ const TreeNodeComponent: React.FC<TreeNodeProps> = ({
           <div className="flex items-center space-x-2">
             {icon}
             <Label className="text-sm font-normal cursor-pointer">
-              {node.label}
+              {transformActionText(node.label)}
             </Label>
           </div>
         </div>
