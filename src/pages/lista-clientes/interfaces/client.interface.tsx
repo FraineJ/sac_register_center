@@ -25,5 +25,5 @@ export interface IClient {
   created_at?: string;
   typePerson: PersonType,
   documentType: DocumentType,
-  role_id: string
+  role_id: number;
 }

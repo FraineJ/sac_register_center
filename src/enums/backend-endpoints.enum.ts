@@ -47,12 +47,12 @@ export enum BACKEND_ENDPOINTS {
     UPDATE_VESSEL = "api/vessel",
     GET_VESSEL_BY_ID = "api/vessel",
     DELETE_VESSEL = "api/vessel",
-    
     CREATE_EQUIPMENT = "api/equipment/create",
     GET_EQUIPMENT = "api/equipment",
     UPDATE_EQUIPMENT = "api/equipment",
     DELETE_EQUIPMENT = "api/equipment",
-
+    GET_LIST_DOCUMENT = "api/list-document",
+    LIST_FLEET_DOCUMENT = "api/fleet/document-expire",
 
 
 

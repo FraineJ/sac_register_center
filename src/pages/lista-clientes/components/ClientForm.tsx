@@ -34,15 +34,15 @@ export function ClientForm({ client, onSubmit, onCancel }: ClientFormProps) {
     address: '',
     typePerson: 'natural' as PersonType, // Nuevo campo: tipo de persona
     documentType: 'cedula_ciudadania' as DocumentType,
-    role_id: ''
+    role_id: 0
   });
-  
+
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [roles, setRoles] = useState<Role[]>([]);
   const [loadingRoles, setLoadingRoles] = useState(true); // Cambiado a true
-  
+
   // Opciones de tipo de documento según el tipo de persona
-  const documentTypes = {
+  const documentTypesOpcion = {
     natural: [
       { value: 'cedula_ciudadania', label: 'Cédula de Ciudadanía' },
       { value: 'cedula_extranjeria', label: 'Cédula de Extranjería' },
@@ -55,6 +55,7 @@ export function ClientForm({ client, onSubmit, onCancel }: ClientFormProps) {
   };
 
   useEffect(() => {
+    console.log("edit client ", client);
     if (client) {
       setFormData({
         profile_picture: client.profile_picture || '',
@@ -66,11 +67,19 @@ export function ClientForm({ client, onSubmit, onCancel }: ClientFormProps) {
         address: client.address || '',
         typePerson: client.typePerson || 'natural',
         documentType: client.documentType || 'cedula_ciudadania',
-        role_id: client.role_id
+        role_id: client.role_id || 0
       });
     }
     listRoles();
   }, [client]);
+
+  useEffect(() => {
+  console.log("Current formData:", formData);
+  console.log("Available document types:", documentTypesOpcion[formData.typePerson]);
+  console.log("Selected document type exists:", 
+    documentTypesOpcion[formData.typePerson].find(doc => doc.value === formData.documentType)
+  );
+}, [formData]);
 
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
@@ -78,30 +87,51 @@ export function ClientForm({ client, onSubmit, onCancel }: ClientFormProps) {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData(prev => (
+      {
+        ...prev,
+        [name]: name === 'role_id' ? Number(value) : value
+      }
+    ));
+
   };
 
-  const handleInputChangeRol = (field: string, value: string | number) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
-    }
+  // const handleInputChangeRol = (field: string, value: string | number) => {
+  //   setFormData(prev => ({
+  //     ...prev,
+  //     [field]: field === 'role_id' ? Number(value) : value // Convertir a number
+  //   }));
+  //   if (errors[field]) {
+  //     setErrors(prev => ({ ...prev, [field]: '' }));
+  //   }
+  // };
+
+  const handleInputChangeRol = (value: string) => {
+    handleSelectChange('role_id', value);
   };
+
 
   const handleSelectChange = (name: string, value: string) => {
-    setFormData(prev => ({ 
-      ...prev, 
-      [name]: value 
-    }));
+    console.log(`Changing ${name} to:`, value);
 
-    // Si cambia el tipo de persona, resetear el tipo de documento al valor por defecto
-    if (name === 'typePerson') {
-      const defaultDocumentType = value === 'natural' ? 'cedula_ciudadania' : 'nit';
-      setFormData(prev => ({ 
-        ...prev, 
-        typePerson: value as PersonType,
-        documentType: defaultDocumentType as DocumentType
-      }));
+    setFormData(prev => {
+      const newData = {
+        ...prev,
+        [name]: name === 'role_id' ? Number(value) : value
+      };
+
+      // Si cambia el tipo de persona, resetear el tipo de documento
+      if (name === 'typePerson') {
+        const defaultDocumentType = value === 'natural' ? 'cedula_ciudadania' : 'nit';
+        newData.documentType = defaultDocumentType as DocumentType;
+      }
+
+      return newData;
+    });
+
+    // Limpiar error si existe
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
     }
   };
 
@@ -132,7 +162,7 @@ export function ClientForm({ client, onSubmit, onCancel }: ClientFormProps) {
           address: '',
           typePerson: 'natural',
           documentType: 'cedula_ciudadania',
-          role_id: ''
+          role_id: null
         });
         setUploadedImage(null);
       }
@@ -211,31 +241,41 @@ export function ClientForm({ client, onSubmit, onCancel }: ClientFormProps) {
       newErrors.email = 'El correo no es válido';
     }
     if (!formData.identification?.trim()) newErrors.identification = 'El número de identificación es requerido';
-    if(!formData.typePerson.trim()) newErrors.typePerson = 'El tipo de persona es requerido';
-    if(!formData.documentType.trim()) newErrors.documentType = 'El tipo de documento es requerido';
-    
-    if(!formData.role_id.trim()) newErrors.role_id = 'El rol es requerido';
+    if (!formData.typePerson.trim()) newErrors.typePerson = 'El tipo de persona es requerido';
+    if (!formData.documentType.trim()) newErrors.documentType = 'El tipo de documento es requerido';
+
+    if (!formData.role_id || formData.role_id === 0) newErrors.role_id = 'El rol es requerido';
 
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-   const listRoles = async () => {
-      try {
-        setLoadingRoles(true);
-        const response = await rolService.list();
-        setRoles(response.data);
-      } catch (error) {
-        toast({
-          title: "Error",
-          description: "No se pudieron cargar los roles",
-          variant: "destructive",
-        });
-      } finally {
-        setLoadingRoles(false);
-      }
-    };
+  const listRoles = async () => {
+    try {
+      setLoadingRoles(true);
+      const response = await rolService.list();
+      setRoles(response.data);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "No se pudieron cargar los roles",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingRoles(false);
+    }
+  };
+
+
+  const handleTypePersonChange = (value: string) => {
+    handleSelectChange('typePerson', value);
+  };
+
+  // Función específica para tipo de documento
+  const handleDocumentTypeChange = (value: string) => {
+    handleSelectChange('documentType', value);
+  };
 
   return (
     <div className="min-h-screen bg-background p-6">
@@ -322,9 +362,8 @@ export function ClientForm({ client, onSubmit, onCancel }: ClientFormProps) {
                   <div className="space-y-2 w-full">
                     <Label htmlFor="typePerson">Tipo de Persona *</Label>
                     <Select
-                      name="typePerson"
                       value={formData.typePerson}
-                      onValueChange={(value) => handleSelectChange('typePerson', value)}
+                      onValueChange={handleTypePersonChange}
                     >
                       <SelectTrigger className={errors.typePerson ? "border-destructive" : ""}>
                         <SelectValue placeholder="Seleccione el tipo de persona" />
@@ -335,65 +374,28 @@ export function ClientForm({ client, onSubmit, onCancel }: ClientFormProps) {
                       </SelectContent>
                     </Select>
                     {errors.typePerson && <p className="text-sm text-destructive">{errors.typePerson}</p>}
-
                   </div>
 
                   <div className="space-y-2 w-full">
                     <Label htmlFor="documentType">Tipo de Documento *</Label>
                     <Select
-                      name="documentType"
-                      value={formData.documentType}
-                      onValueChange={(value) => handleSelectChange('documentType', value)}
-                    >
-                      <SelectTrigger className={errors.documentType ? "border-destructive" : ""}>
-                        <SelectValue placeholder="Seleccione el tipo de documento" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {documentTypes[formData.typePerson].map((docType) => (
-                          <SelectItem key={docType.value} value={docType.value}>
-                            {docType.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+  key={formData.typePerson}
+  value={formData.documentType}
+  onValueChange={handleDocumentTypeChange}
+>
+  <SelectTrigger className={errors.documentType ? "border-destructive" : ""}>
+    <SelectValue placeholder="Seleccione el tipo de documento" />
+  </SelectTrigger>
+  <SelectContent>
+    {documentTypesOpcion[formData.typePerson].map((docType) => (
+      <SelectItem key={docType.value} value={docType.value}>
+        {docType.label}
+      </SelectItem>
+    ))}
+  </SelectContent>
+</Select>
+
                     {errors.documentType && <p className="text-sm text-destructive">{errors.documentType}</p>}
-
-                  </div>
-                </div>
-
-                {/* Client Name */}
-                <div className='flex row gap-2 mb-2'>
-                  <div className="space-y-2 w-full">
-                    <Label htmlFor="name">
-                      {formData.typePerson === 'natural' ? 'Nombre Completo *' : 'Razón Social *'}
-                    </Label>
-                    <Input
-                      id="name"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleInputChange}
-                      placeholder={
-                        formData.typePerson === 'natural' 
-                          ? "Ingrese el nombre completo" 
-                          : "Ingrese la razón social"
-                      }
-                      className={errors.name ? "border-destructive w-full" : "w-full"}
-                    />
-                    {errors.name && <p className="text-sm text-destructive">{errors.name}</p>}
-                  </div>
-
-                  {/* Identification */}
-                  <div className="space-y-2 w-full">
-                    <Label htmlFor="identification">Número de Documento *</Label>
-                    <Input
-                      id="identification"
-                      name="identification"
-                      value={formData.identification}
-                      onChange={handleInputChange}
-                      placeholder="Ingrese el número de documento"
-                      className={errors.identification ? "border-destructive w-full" : "w-full"}
-                    />
-                    {errors.identification && <p className="text-sm text-destructive">{errors.identification}</p>}
                   </div>
                 </div>
 
@@ -430,11 +432,14 @@ export function ClientForm({ client, onSubmit, onCancel }: ClientFormProps) {
                 <div className="space-y-2 mb-2">
                   <Label htmlFor="role_id">Rol <small>(Cargo)</small> *</Label>
                   <Select
-                    value={parseInt(formData.role_id) !== 0 ? String(formData.role_id) : undefined}
-                    onValueChange={(value) => handleInputChangeRol('role_id', value)}
+                    value={formData.role_id !== 0 ? String(formData.role_id) : undefined}
+                    onValueChange={(value) => handleInputChangeRol}
+                    disabled={loadingRoles}
                   >
                     <SelectTrigger className={errors.role_id ? "border-destructive" : ""}>
-                      <SelectValue placeholder={loadingRoles ? "Cargando roles..." : "Seleccione un rol"} />
+                      <SelectValue
+                        placeholder={loadingRoles ? "Cargando roles..." : "Seleccione un rol"}
+                      />
                     </SelectTrigger>
                     <SelectContent>
                       {roles.map((role) => (
@@ -472,7 +477,7 @@ export function ClientForm({ client, onSubmit, onCancel }: ClientFormProps) {
                   />
                 </div>
 
-            
+
 
                 {/* Form Actions */}
                 <div className="flex justify-end gap-4 pt-3">

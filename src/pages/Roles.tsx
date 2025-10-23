@@ -66,6 +66,9 @@ export default function Roles() {
   const [roles, setRoles] = useState<Role[]>([]);
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [nameError, setNameError] = useState<string>("");
+
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -135,6 +138,24 @@ export default function Roles() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
+
+    const trimmedName = formData.name.trim();
+    const basicErr = isValidRoleName(trimmedName);
+    if (basicErr) {
+      setNameError(basicErr);
+      toast({ title: "Nombre inválido", description: basicErr, variant: "destructive" });
+      setIsLoading(false);
+      return;
+    }
+    if (!isUniqueRoleName(trimmedName, selectedRole?.id)) {
+      const msg = "Ya existe un rol con ese nombre.";
+      setNameError(msg);
+      toast({ title: "Duplicado", description: msg, variant: "destructive" });
+      setIsLoading(false);
+      return;
+    }
+
 
     try {
       if (selectedRole) {
@@ -192,6 +213,9 @@ export default function Roles() {
         variant: "destructive",
       });
     }
+    finally {
+      setIsLoading(false); // Desactivar loading
+    }
   };
 
   const handlePermissionChange = (action: SubMenuAction, checked: boolean) => {
@@ -248,6 +272,21 @@ export default function Roles() {
     return iconMap[menuName] || <Settings className="h-4 w-4" />;
   };
 
+  const transformActionText = (text: string): string => {
+    switch (text) {
+      case 'LIST':
+        return 'Listar';
+      case 'CREATE':
+        return 'Guardar';
+      case 'DELETE':
+        return 'Eliminar';
+      case 'UPDATE':
+        return 'Actualizar';
+      default:
+        return text;
+    }
+  };
+
   const convertMenuToTreeNodes = (): TreeNode[] => {
     if (!menuData || menuData.length === 0) return [];
 
@@ -264,7 +303,7 @@ export default function Roles() {
           data: { type: 'submenu', id: subMenu.menu_id },
           children: subMenu.permissions.map((action) => ({
             id: `action-${action.id}-${subMenu.menu_id}`,
-            label: action.action,
+            label: transformActionText(action.action), // Aplicar transformación aquí
             icon: <UserCheck className="h-3 w-3" />,
             data: {
               ...action,
@@ -296,6 +335,7 @@ export default function Roles() {
           <div className="flex items-center space-x-2 flex-1">
             {options.hasChildren && (
               <button
+                type="button"
                 className="p-1 hover:bg-muted rounded"
                 onClick={(e) => {
                   e.stopPropagation();
@@ -365,6 +405,24 @@ export default function Roles() {
     }
   };
 
+  const isValidRoleName = (name: string) => {
+    const trimmed = name.trim();
+    if (trimmed.length < 3) return "El nombre debe tener al menos 3 caracteres.";
+    // Permite letras, números, espacios y - _ . (ajusta si necesitas)
+    const re = /^[\p{L}\p{N}\s._-]+$/u;
+    if (!re.test(trimmed)) return "Usa solo letras, números, espacios y (.-_).";
+    return "";
+  };
+
+  const isUniqueRoleName = (name: string, ignoreId?: string) => {
+    const target = name.trim().toLowerCase();
+    return !roles.some(r =>
+      r.name?.trim().toLowerCase() === target &&
+      (ignoreId ? r.id !== ignoreId : true)
+    );
+  };
+
+
   return (
     <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
@@ -387,12 +445,12 @@ export default function Roles() {
                 <CardDescription>{role.description}</CardDescription>
               </div>
               <div className="flex space-x-2">
-                <Button 
-                  variant="ghost" 
+                <Button
+                  variant="ghost"
                   size="sm" onClick={() => handleEditRole(role)}
                   className="h-8 w-8 p-0 hover:bg-info/10 hover:text-info"
                   title="Editar"
-                  >
+                >
                   <Edit className="h-4 w-4" />
                 </Button>
 
@@ -444,19 +502,28 @@ export default function Roles() {
             </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form
+            className="space-y-6"
+            onSubmit={(e) => {
+              e.preventDefault();
+            }}
+          >
             <div className="grid grid-cols-1 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="roleName">Nombre del Rol *</Label>
                 <Input
                   id="roleName"
                   value={formData.name}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, name: e.target.value }))
-                  }
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setFormData((prev) => ({ ...prev, name: val }));
+                    const msg = isValidRoleName(val);
+                    setNameError(msg);
+                  }}
                   placeholder="Nombre del rol"
                   required
                 />
+                {nameError && <p className="text-xs text-destructive mt-1">{nameError}</p>}
+
               </div>
               <div className="space-y-2">
                 <Label htmlFor="roleDescription">Descripción</Label>
@@ -485,13 +552,28 @@ export default function Roles() {
             </div>
 
             <div className="flex justify-end space-x-2 pt-2">
-              <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+              <Button type="button" variant="outline"
+                onClick={() => setIsDialogOpen(false)}
+                disabled={isLoading}
+              >
                 <X className="h-4 w-4 mr-2" />
                 Cancelar
               </Button>
-              <Button type="submit">
-                <Save className="h-4 w-4 mr-2" />
-                {selectedRole ? "Actualizar" : "Crear"} Rol
+              <Button type="button"
+                onClick={handleSubmit}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent mr-2" />
+                    {selectedRole ? "Actualizando..." : "Creando..."}
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4 mr-2" />
+                    {selectedRole ? "Actualizar" : "Crear"} Rol
+                  </>
+                )}
               </Button>
             </div>
           </form>

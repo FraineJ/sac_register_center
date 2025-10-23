@@ -120,7 +120,7 @@ export function UserForm({ user, onSubmit, onCancel }: UserFormProps) {
       onSubmit(response.data);
 
     } catch (error: any) {
-      console.error('Error al guardar el usuario:', error);
+      console.log('Error al guardar el usuario:', error);
 
       let errorMessage = 'Ocurrió un error al guardar el usuario';
       if (error.response?.data?.message) {
@@ -129,9 +129,12 @@ export function UserForm({ user, onSubmit, onCancel }: UserFormProps) {
         errorMessage = error.message;
       }
 
+      // En tu handleSubmit o donde manejes el error:
       toast({
-        title: "Error",
-        description: errorMessage,
+        title: error.message || "Error",
+        description:
+          error.errors?.[0] ??
+          "Ha ocurrido un error inesperado",
         variant: "destructive",
       });
     }

@@ -24,6 +24,7 @@ import { ToastAction } from '@radix-ui/react-toast';
 import FleetDetails from './components/FleetDetails';
 import { clientService } from '@/services/client.services';
 import { IClient } from '../lista-clientes/interfaces/client.interface';
+import { useNavigate } from 'react-router-dom';
 
 
 interface IDocument {
@@ -65,6 +66,7 @@ const Fleet = () => {
     }
   ]);
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
   const [clients, setClients] = useState<IClient[]>([]);
   const [formData, setFormData] = useState({
     name: '',
@@ -525,18 +527,25 @@ const Fleet = () => {
   const registeredVessels = [];
   const [viewingVessel, setViewingVessel] = useState<any | null>(null);
 
-  if (viewingVessel) {
-    return (
-      <FleetDetails
-        vessel={viewingVessel}
-        onClose={() => setViewingVessel(null)}
-        onEdit={(vessel) => {
-          setViewingVessel(null);
-          editVessel(vessel);
-        }}
-      />
-    );
-  }
+  // if (viewingVessel) {
+  //   return (
+  //     <FleetDetails
+  //       vessel={viewingVessel}
+  //       onClose={() => setViewingVessel(null)}
+  //       onEdit={(vessel) => {
+  //         setViewingVessel(null);
+  //         editVessel(vessel);
+  //       }}
+  //     />
+  //   );
+  // }
+
+
+  const viewVessel = (vesselId: string) => {
+    // Navegar directamente a la página de edición usando el ID
+    navigate(`/fleet-details/${vesselId}`);
+  };
+
 
   const handleDocumentFileSelect = (id: string, e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -1081,7 +1090,7 @@ const Fleet = () => {
                           <div className="flex items-center justify-end gap-1">
                             <Button variant="ghost" size="sm"
                               className="h-8 w-8 p-0 hover:bg-indigo-400 hover:text-white"
-                              onClick={() => setViewingVessel(vessel)}
+                              onClick={() => viewVessel(vessel.id)}
                             >
                               <Eye className="h-4 w-4" />
                             </Button>

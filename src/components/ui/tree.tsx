@@ -51,13 +51,22 @@ const TreeNodeComponent: React.FC<TreeNodeProps> = ({
   const indent = level * 20;
 
   const handleToggle = (e: React.MouseEvent) => {
+    e.preventDefault();
     e.stopPropagation();
     if (hasChildren) {
       onToggle(node);
     }
   };
 
-  const handleSelect = () => {
+  const handleSelect = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (node.selectable !== false) {
+      onSelect(node);
+    }
+  };
+
+  const handleCheckboxChange = (checked: boolean) => {
     if (node.selectable !== false) {
       onSelect(node);
     }
@@ -69,25 +78,17 @@ const TreeNodeComponent: React.FC<TreeNodeProps> = ({
 
   const icon = node.icon || defaultIcon;
 
+  // Mover la función transformActionText fuera del componente
   if (nodeTemplate) {
-    return nodeTemplate(node, { expanded, selected, level, hasChildren });
+    return nodeTemplate(node, { 
+      expanded, 
+      selected, 
+      level, 
+      hasChildren,
+      onToggle: handleToggle,
+      onSelect: handleSelect
+    });
   }
-
-  // Si estás usando TypeScript
-const transformActionText = (text: string): string => {
-  switch(text) {
-    case 'LIST':
-      return 'Listar';
-    case 'CREATE':
-      return 'Guardar';
-    case 'DELETE':
-      return 'Eliminar';
-    case 'UPDATE':
-      return 'Actualizar';
-    default:
-      return text;
-  }
-};
 
   return (
     <div className="tree-node">
@@ -102,6 +103,7 @@ const transformActionText = (text: string): string => {
         <div className="flex items-center space-x-2 flex-1">
           {hasChildren && (
             <button
+              type="button" // Importante: agregar type="button"
               className="p-1 hover:bg-muted rounded"
               onClick={handleToggle}
             >
@@ -117,7 +119,7 @@ const transformActionText = (text: string): string => {
           {selectionMode === "checkbox" && (
             <Checkbox
               checked={selected}
-              onCheckedChange={handleSelect}
+              onCheckedChange={handleCheckboxChange}
               onClick={(e) => e.stopPropagation()}
             />
           )}
@@ -125,7 +127,7 @@ const transformActionText = (text: string): string => {
           <div className="flex items-center space-x-2">
             {icon}
             <Label className="text-sm font-normal cursor-pointer">
-              {transformActionText(node.label)}
+              {node.label}
             </Label>
           </div>
         </div>

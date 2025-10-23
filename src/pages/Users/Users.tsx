@@ -23,11 +23,10 @@ export default function Users() {
   }, []);
 
   const handleAddUser = (userData: Omit<IUser, 'id' | 'created_at'>) => {
-    const newUser: IUser = {
-      ...userData,
-      id: Date.now().toString(),
-      created_at: new Date().toISOString()
-    };
+  
+
+    const newUser: IUser = userData;
+
 
     setUsers(prev => [newUser, ...prev]);
     setShowForm(false);

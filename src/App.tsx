@@ -22,6 +22,7 @@ import ManeuverDetails from "./pages/operations/ManeuverDetails";
 import CompletedManeuverDetails from "./pages/operations/CompletedManeuverDetails";
 import { MaintenanceDetail } from "./pages/lista-mantenimiento/DetalleMantenimiento";
 import Equipment from "./pages/equipment/Equipment";
+import FleetDetails from "./pages/fleet/components/FleetDetails";
 
 const queryClient = new QueryClient();
 
@@ -46,7 +47,7 @@ const App = () => (
             <Route path="configuracion/rol" element={<Roles />} />
             <Route path="configuracion/tarifario" element={<Tarifario />} />
             <Route path="equipos" element={<Equipment />} />
-
+            <Route path="fleet-details/:id" element={<FleetDetails />} />
             <Route path="maniobra-detalle/:id" element={<ManeuverDetails />} />
             <Route path="maniobra-completada/:id" element={<CompletedManeuverDetails />} />
 

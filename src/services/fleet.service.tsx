@@ -2,11 +2,22 @@ import axios from 'axios';
 import apiClient from './apiClient';
 import { BACKEND_ENDPOINTS } from '@/enums/backend-endpoints.enum';
 
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
+
 class FleetService {
+
 
     async create(data: any) {
         try {
-            const response = await apiClient.post(BACKEND_ENDPOINTS.CREATE_FLEET, data);
+
+            const response = await axios.post(`${apiBaseUrl}/${BACKEND_ENDPOINTS.CREATE_FLEET}`, data,
+                {
+                    withCredentials: true,
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    },
+                });
+
 
             return response;
         } catch (error) {
@@ -17,6 +28,27 @@ class FleetService {
     async list() {
         try {
             const response = await apiClient.get(BACKEND_ENDPOINTS.LIST_FLEET);
+
+            return response;
+        } catch (error) {
+            this.handleError(error);
+        }
+    }
+
+    async getFleetById(id: number) {
+        try {
+            const response = await apiClient.get(`${BACKEND_ENDPOINTS.LIST_FLEET}/${id}`);
+
+            return response;
+        } catch (error) {
+            this.handleError(error);
+        }
+    }
+
+
+    async listDocumentExpire() {
+        try {
+            const response = await apiClient.get(BACKEND_ENDPOINTS.LIST_FLEET_DOCUMENT);
 
             return response;
         } catch (error) {

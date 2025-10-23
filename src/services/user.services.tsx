@@ -6,7 +6,7 @@ class UserService {
 
     async create(data: any) {
         try {
-            const response = await apiClient.post(BACKEND_ENDPOINTS.REGISTER_USER, data);
+            const response = await apiClient.post(BACKEND_ENDPOINTS.REGISTER_USER, data, );
 
             return response;
         } catch (error) {
@@ -68,10 +68,8 @@ class UserService {
     private handleError(error: unknown) {
         if (axios.isAxiosError(error)) {
             // Puedes personalizar el manejo de errores de Axios aquí
-            console.error('Error en la solicitud:', error.response?.data || error.message);
             throw error.response?.data || error.message;
         }
-        console.error('Error desconocido:', error);
         throw error;
     }
 }
