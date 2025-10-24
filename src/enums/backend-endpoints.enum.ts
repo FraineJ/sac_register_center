@@ -53,9 +53,7 @@ export enum BACKEND_ENDPOINTS {
     DELETE_EQUIPMENT = "api/equipment",
     GET_LIST_DOCUMENT = "api/list-document",
     LIST_FLEET_DOCUMENT = "api/fleet/document-expire",
-
-
-
-
+    FLEET_DOWNLOAND_FILE = "api/fleet/download",
+    GET_FLEET_BY_ID = "api/fleet/getById",
 
   }

@@ -37,7 +37,7 @@ class FleetService {
 
     async getFleetById(id: number) {
         try {
-            const response = await apiClient.get(`${BACKEND_ENDPOINTS.LIST_FLEET}/${id}`);
+            const response = await apiClient.get(`${BACKEND_ENDPOINTS.GET_FLEET_BY_ID}/${id}`);
 
             return response;
         } catch (error) {
@@ -80,6 +80,18 @@ class FleetService {
         try {
             const response = await apiClient.delete(`${BACKEND_ENDPOINTS.DELETE_WITH_DOCUMENT_FLEET}/${fleetId}`);
 
+            return response;
+        } catch (error) {
+            this.handleError(error);
+        }
+    }
+
+    async downloadFile(url: string) {
+        try {
+            const response = await apiClient.get(BACKEND_ENDPOINTS.FLEET_DOWNLOAND_FILE, {
+                params: { url: url }, // Enviar como parámetro query
+                responseType: 'blob'
+            });
             return response;
         } catch (error) {
             this.handleError(error);

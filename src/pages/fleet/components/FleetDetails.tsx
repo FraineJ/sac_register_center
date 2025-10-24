@@ -69,11 +69,11 @@ const fetchVesselData = async (id: string): Promise<IFleet> => {
     console.log("datos ", response.data);
     return response.data;
   } catch (error) {
-     toast({
-        title: "Error",
-        description: "No se pudieron cargar las embarcaciones",
-        variant: "destructive",
-      });
+    toast({
+      title: "Error",
+      description: "No se pudieron cargar las embarcaciones",
+      variant: "destructive",
+    });
   }
 };
 
@@ -152,11 +152,51 @@ const FleetDetails: React.FC = () => {
     }
   };
 
-  const handleDownloadDocument = (document: any) => {
-    if (document?.url) {
-      window.open(document.url, '_blank');
+  const handleDownloadDocument = async (documentItem: any) => {
+    if (documentItem?.url) {
+      try {
+        const response = await fleetService.downloadFile(documentItem.url);
+
+        // Crear un blob con la respuesta
+        const blob = new Blob([response.data], {
+          type: response.headers['content-type']
+        });
+
+        // Crear URL temporal para el blob
+        const downloadUrl = window.URL.createObjectURL(blob);
+
+        // Crear elemento anchor para la descarga
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+
+        // Obtener el nombre del archivo de los headers o generar uno
+        const contentDisposition = response.headers['content-disposition'];
+        let fileName = documentItem.name || 'document';
+
+        // Intentar extraer el nombre del archivo del header Content-Disposition
+        if (contentDisposition) {
+          const fileNameMatch = contentDisposition.match(/filename="?(.+)"?/);
+          if (fileNameMatch && fileNameMatch.length === 2) {
+            fileName = fileNameMatch[1];
+          }
+        }
+
+        link.setAttribute('download', fileName);
+        document.body.appendChild(link);
+
+        // Simular click para descargar
+        link.click();
+
+        // Limpiar
+        link.remove();
+        window.URL.revokeObjectURL(downloadUrl);
+
+      } catch (error) {
+        console.error('Error downloading file:', error);
+        // Puedes mostrar una notificación al usuario aquí
+      }
     } else {
-      console.log('Descargando documento simulado:', document);
+      console.log('Descargando documento simulado:', documentItem);
     }
   };
 
@@ -165,9 +205,55 @@ const FleetDetails: React.FC = () => {
     // Implementar lógica de notificación
   };
 
-  const handleViewHistory = (document: any) => {
-    console.log('Ver historial de:', document.name);
-    // Implementar lógica de historial
+  const handleViewHistory = (documentUrl: string, documentName: string) => {
+
+    // Validaciones
+    if (!documentUrl) {
+      return;
+    }
+
+    try {
+      const url = new URL(documentUrl);
+
+      // Lista de extensiones que los navegadores pueden visualizar directamente
+      const viewableExtensions = [
+        // Documentos
+        '.pdf', '.txt', '.html', '.htm',
+        // Imágenes
+        '.jpg', '.jpeg', '.png', '.gif', '.bmp', '.svg', '.webp',
+        // Audio/Video
+        '.mp3', '.mp4', '.webm', '.ogg',
+        // Otros
+        '.json', '.xml', '.csv'
+      ];
+
+      const extension = documentUrl.toLowerCase().substring(documentUrl.lastIndexOf('.'));
+
+      if (viewableExtensions.includes(extension)) {
+        window.open(documentUrl, '_blank');
+      } else {
+
+        toast(
+          {
+            title: "Error al abrir el documento",
+            description: `El archivo ${documentName} puede no poder visualizarse en el navegador`,
+            variant: "destructive"
+          }
+        );
+
+
+      }
+
+    } catch (error) {
+      toast(
+        {
+          title: "Error al abrir el documento",
+          description: `El archivo ${documentName} puede no poder visualizarse en el navegador`,
+          variant: "destructive"
+        }
+      );
+      window.open(documentUrl, '_blank');
+    }
   };
 
   // Estados de carga y error
@@ -226,7 +312,7 @@ const FleetDetails: React.FC = () => {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            
+
             <Button onClick={handleClose} className="rounded-lg">
               Cerrar
             </Button>
@@ -239,40 +325,66 @@ const FleetDetails: React.FC = () => {
             {/* Información de la Embarcación */}
             <div className="bg-white rounded-lg border border-slate-300 p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">Información de la Embarcación</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Nombre</label>
-                  <p className="text-gray-900 font-semibold">{vessel.name}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Registro</label>
-                  <p className="text-gray-900 font-semibold">{vessel.identification}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Bandera</label>
-                  <div className="flex items-center gap-2">
-                    <Flag className="h-4 w-4 text-gray-600" />
-                    <span className="text-gray-900">{vessel.flag}</span>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+                <section className="">
+                  {vessel.image ? (
+                    <div className="rounded-xl overflow-hidden border bg-black/5">
+                      <img
+                        src={vessel.image}
+                        alt={`Imagen de ${vessel.name}`}
+                        className="w-full h-64 object-cover"
+                      />
+                    </div>
+                  ) : (
+                    <div className="h-64 border-2 border-dashed rounded-xl flex items-center justify-center text-muted-foreground bg-muted/30">
+                      <div className="text-center">
+                        <Ship className="h-10 w-10 mx-auto mb-2 opacity-50" />
+                        <p className="text-sm">Sin imagen</p>
+                      </div>
+                    </div>
+                  )}
+                </section>
+                <div className='space-y-4'>
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Nombre</label>
+                    <p className="text-gray-900 font-semibold">{vessel.name}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Registro</label>
+                    <p className="text-gray-900 font-semibold">{vessel.identification}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Bandera</label>
+                    <div className="flex items-center gap-2">
+                      <Flag className="h-4 w-4 text-gray-600" />
+                      <span className="text-gray-900">{vessel.flag}</span>
+                    </div>
                   </div>
                 </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Tipo</label>
-                  <div className="flex items-center gap-2">
-                    <Ship className="h-4 w-4 text-gray-600" />
-                    <span className="text-gray-900">{vessel.type}</span>
+
+                <div className='space-y-4'>
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Tipo</label>
+                    <div className="flex items-center gap-2">
+                      <Ship className="h-4 w-4 text-gray-600" />
+                      <span className="text-gray-900">{vessel.type}</span>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Estado</label>
+                    <div className="mt-1">{getStatusBadge(vessel.status)}</div>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Capacidad</label>
+                    <div className="flex items-center gap-2">
+                      <Gauge className="h-4 w-4 text-gray-600" />
+                      <span className="text-gray-900">{vessel.capacity} toneladas</span>
+                    </div>
                   </div>
                 </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Estado</label>
-                  <div className="mt-1">{getStatusBadge(vessel.status)}</div>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Capacidad</label>
-                  <div className="flex items-center gap-2">
-                    <Gauge className="h-4 w-4 text-gray-600" />
-                    <span className="text-gray-900">{vessel.capacity} toneladas</span>
-                  </div>
-                </div>
+
+
               </div>
             </div>
           </div>
@@ -366,9 +478,9 @@ const FleetDetails: React.FC = () => {
               <thead>
                 <tr className="text-sm font-medium text-white bg-primary">
                   <th scope="col" className="px-4 py-3 text-left">Documento</th>
-                  <th scope="col" className="px-4 py-3 text-left">Inicio de Ventana</th>
-                  <th scope="col" className="px-4 py-3 text-left">Fin de Ventana</th>
-                  <th scope="col" className="px-4 py-3 text-left">Fecha de Expiración</th>
+                  <th scope="col" className="px-4 py-3 text-center">Inicio de Ventana</th>
+                  <th scope="col" className="px-4 py-3 text-center">Fin de Ventana</th>
+                  <th scope="col" className="px-4 py-3 text-center">Fecha de Expiración</th>
                   <th scope="col" className="px-4 py-3 text-center">Estado</th>
                   <th scope="col" className="px-4 py-3 text-center">Cliente Notificado</th>
                   <th scope="col" className="px-4 py-3 text-center">Acciones</th>
@@ -400,8 +512,8 @@ const FleetDetails: React.FC = () => {
                           <Badge
                             variant={statusInfo.variant}
                             className={`rounded-full ${statusInfo.status === 'expired' ? 'bg-red-100 text-red-800 border-red-200' :
-                                statusInfo.status === 'warning' ? 'bg-yellow-100 text-yellow-800 border-yellow-200' :
-                                  'bg-green-100 text-green-800 border-green-200'
+                              statusInfo.status === 'warning' ? 'bg-yellow-100 text-yellow-800 border-yellow-200' :
+                                'bg-green-100 text-green-800 border-green-200'
                               }`}
                           >
                             {statusInfo.label}
@@ -436,7 +548,7 @@ const FleetDetails: React.FC = () => {
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => handleViewHistory(doc)}
+                              onClick={() => handleViewHistory(doc.url, doc.name)}
                               className="h-8 w-8 p-0 rounded-lg text-slate-600 hover:text-sky-600 hover:bg-slate-100"
                               aria-label="Ver historial"
                             >

@@ -8,6 +8,7 @@ interface User {
 }
 
 interface Fleet {
+    id: number,
     name: string;
     user: User;
 }

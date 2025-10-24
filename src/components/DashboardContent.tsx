@@ -9,6 +9,7 @@ import { IFleetDocument } from "./interfaces/dashboard.interface";
 import { formatDate } from "date-fns";
 import { Button } from "./ui/button";
 import { Edit, Eye } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 type Activity = {
   vessel: string;
@@ -22,15 +23,8 @@ export function DashboardContent() {
   const [fleets, setFleet] = useState<IFleet[]>([]);
   const [clients, setClients] = useState<IClient[]>([]);
   const [fleetsDocumentExpire, setFleetDocumentExpire] = useState<IFleetDocument[]>([]);
+  const navigate = useNavigate();
 
-
-  const activities: Activity[] = [
-    { vessel: "Ocean Voyager", owner: "Ethan Carter", certification: "Certificado de Gestión de la Seguridad (SMC - ISM)", expiry: "2024-12-31" },
-    { vessel: "Sea Serpent", owner: "Olivia Bennett", certification: "Certificado de Equipo de Seguridad (Safety Equipment)", expiry: "2024-11-15" },
-    { vessel: "Aqua Explorer", owner: "Noah Thompson", certification: "Certificado Radioeléctrico de Seguridad (Safety Radio)", expiry: "2024-10-20" },
-    { vessel: "Wave Rider", owner: "Ava Harris", certification: "Certificado de Construcción de Seguridad (Safety Construction)", expiry: "2024-09-05" },
-    { vessel: "Coastal Cruiser", owner: "Liam Clark", certification: "Certificado Internacional de Seguridad del Buque (ISSC)", expiry: "2024-08-10" },
-  ];
 
   // Mover las funciones dentro del componente
   const listFleet = async () => {
@@ -108,6 +102,10 @@ export function DashboardContent() {
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('es-CO');
+  };
+
+  const viewVessel = (vesselId: string) => {
+    navigate(`/fleet-details/${vesselId}`);
   };
 
   return (
@@ -191,29 +189,29 @@ export function DashboardContent() {
 
                   <td className="px-4 py-4 text-center">
                     <span className="text-sky-600"> {formatDate(row.expirationDate)}</span>
-                   
+
                   </td>
 
                   <td className="px-4 py-4 text-center">
                     <span className="text-sky-600"> {formatDate(row.windowStart)}</span>
-                   
+
                   </td>
 
                   <td className="px-4 py-4 text-center">
                     <span className="text-sky-600"> {formatDate(row.windowEnd)}</span>
-                   
+
                   </td>
 
                   <td className="px-4 py-4 text-center">
                     <Button
-                            variant="ghost"
-                            size="sm"
-                           
-                            className="h-8 w-8 p-0 hover:bg-info/10 hover:text-info"
-                            title="Ver documento"
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => viewVessel(row.fleet.id.toString())}
+                      className="h-8 w-8 p-0 hover:bg-info/10 hover:text-info"
+                      title="Ver documento"
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
                   </td>
 
                 </tr>
