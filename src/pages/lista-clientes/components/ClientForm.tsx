@@ -194,12 +194,9 @@ export function ClientForm({ client, onSubmit, onCancel }: ClientFormProps) {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    console.log("hola 1")
 
     e.preventDefault();
-    console.log("validateForm() ", validateForm());
     if (!validateForm()) return;
-    console.log("hola 4")
 
     const clientData = {
       ...formData,
@@ -208,23 +205,6 @@ export function ClientForm({ client, onSubmit, onCancel }: ClientFormProps) {
 
     onSubmit(clientData);
 
-    // if (!client) {
-    //   setFormData({
-    //     profile_picture: '',
-    //     name: '',
-    //     description: '',
-    //     email: '',
-    //     identification: '',
-    //     phone_number: '',
-    //     address: '',
-    //     typePerson: 'natural',
-    //     documentType: 'cedula_ciudadania',
-    //     role_id: 0,
-    //   });
-    //   setUploadedImage(null);
-    //   setSelectedFiles(null);
-    //   setSelectedRoleDisplay('');
-    // }
   };
 
   // Imagen (UI)
@@ -380,13 +360,13 @@ export function ClientForm({ client, onSubmit, onCancel }: ClientFormProps) {
 
                   {/* Identification */}
                   <div className="space-y-2 w-full">
-                    <Label htmlFor="identification">Número de Documento *</Label>
+                    <Label htmlFor="identification">Número de Identificación *</Label>
                     <Input
                       id="identification"
                       name="identification"
                       value={formData.identification}
                       onChange={handleInputChange}
-                      placeholder="Ingrese el número de documento"
+                      placeholder="Ingrese el número de identificación"
                       className={errors.identification ? "border-destructive w-full" : "w-full"}
                     />
                     {errors.identification && <p className="text-sm text-destructive">{errors.identification}</p>}

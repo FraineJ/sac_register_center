@@ -45,10 +45,31 @@ class FleetService {
         }
     }
 
+      async getFleetByUser(id: number) {
+        try {
+            const response = await apiClient.get(`${BACKEND_ENDPOINTS.GET_FLEET_BY_USER}/${id}`);
+
+            return response;
+        } catch (error) {
+            this.handleError(error);
+        }
+    }
+
 
     async listDocumentExpire() {
         try {
             const response = await apiClient.get(BACKEND_ENDPOINTS.LIST_FLEET_DOCUMENT);
+
+            return response;
+        } catch (error) {
+            this.handleError(error);
+        }
+    }
+
+
+    async listDocumentExpireByUser(userdId: number) {
+        try {
+            const response = await apiClient.get(`${BACKEND_ENDPOINTS.LIST_FLEET_DOCUMENT_BY_USER}/${userdId}`);
 
             return response;
         } catch (error) {

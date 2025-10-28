@@ -64,7 +64,6 @@ export default function ClientList() {
       setEditingClient(null);
 
     } catch (error: any) {
-      console.log('Error al guardar el usuario:', error);
 
       let errorMessage = 'Ocurrió un error al guardar el usuario';
       if (error.response?.data?.message) {
@@ -131,7 +130,6 @@ export default function ClientList() {
   };
 
   const handleDeleteWithVessel = async (clientId: number) => {
-    console.log("clientId ", clientId);
     try {
       const clientToDelete = clients.find(client => client.id === clientId);
 
