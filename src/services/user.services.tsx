@@ -24,6 +24,17 @@ class UserService {
         }
     }
 
+
+     async getInfoUser(id:  number) {
+        try {
+            const response = await apiClient.get(`${BACKEND_ENDPOINTS.GET_USERS}/${id}`);
+
+            return response;
+        } catch (error) {
+            this.handleError(error);
+        }
+    }
+
     async update(userId: string, data: any) {
         try {
             const response = await apiClient.put(`${BACKEND_ENDPOINTS.UPDATE_USERS}/${userId}`, data);

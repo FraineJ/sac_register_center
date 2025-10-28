@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tree, TreeNode } from "@/components/ui/tree";
 import { toast } from "@/hooks/use-toast";
@@ -13,6 +12,7 @@ import { Shield, Plus, Edit, Trash2, Save, X, Settings, Users, Truck, Wrench, Br
 import { cn } from "@/lib/utils";
 import { rolService } from '@/services/rol.services';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { menuService } from "@/services/menu.service";
 
 interface SubMenuAction {
   id: number;
@@ -76,14 +76,7 @@ export default function Roles() {
   });
 
   useEffect(() => {
-    const userData = localStorage.getItem('dataUser');
-    if (userData) {
-      const parsedData = JSON.parse(userData);
-      if (parsedData.menu) {
-        setMenuData(parsedData.menu);
-      }
-    }
-
+    listMenu()
     listRoles();
   }, []);
 
@@ -129,7 +122,7 @@ export default function Roles() {
 
       toast({
         title: "Error al eliminar el rol",
-        description: error instanceof Error ? error.message : "Ha ocurrido un error",
+        description: "No se puede eliminar porque hay usuarios con esté rol",
         variant: "destructive",
       });
       return false;
@@ -396,6 +389,19 @@ export default function Roles() {
     try {
       const response = await rolService.list();
       setRoles(response.data);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "No se pudieron cargar los roles",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const listMenu = async () => {
+    try {
+      const response = await menuService.getMenu();
+      setMenuData(response.data);
     } catch (error) {
       toast({
         title: "Error",

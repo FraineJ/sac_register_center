@@ -25,10 +25,6 @@ export enum BACKEND_ENDPOINTS {
     DELETE_SCHEDULE = "api/schedule",
     UPDATE_SCHEDULE = "api/schedule",
     DELETE_WITH_DOCUMENT_FLEET = "api/fleet/deleteWithDocuments",
-    CREATE_TARIFF = "api/tariff/create",
-    GET_TARIFF = "api/tariff",
-    UPDATE_TARIFF = "api/tariff",
-    DELETE_TARIFF = "api/tariff",
     CREATE_CLIENT = "api/client/create",
     GET_CLIENT = "api/client",
     UPDATE_CLIENT = "api/client",
@@ -55,5 +51,13 @@ export enum BACKEND_ENDPOINTS {
     LIST_FLEET_DOCUMENT = "api/fleet/document-expire",
     FLEET_DOWNLOAND_FILE = "api/fleet/download",
     GET_FLEET_BY_ID = "api/fleet/getById",
+    GET_FLEET_BY_USER = "api/fleet/getByUser",
 
+    LIST_FLEET_DOCUMENT_BY_USER = "api/fleet/document-expire-user",
+    GET_MENU = "api/menu",
+    
+    CREATE_MASTER_LIST = "api/master-list",
+    GET_MASTER_LIST    = "api/master-list",
+    UPDATE_MASTER_LIST = "api/master-list/update",
+    DELETE_MASTER_LIST = "api/master-list"
   }

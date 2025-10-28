@@ -16,6 +16,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { login } from "@/services/auth.service";
 import { Loader2, Eye, EyeOff, Mail, Lock } from "lucide-react";
+import BannerLogin from '../../public/banner-login.jpg';
 
 const loginSchema = z.object({
   email: z.string().email("Ingresa un email válido").min(1, "El email es requerido"),
@@ -31,8 +32,17 @@ const Login = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    const userData = localStorage.getItem("dataUser");
-    if (userData) navigate("/dashboard", { replace: true });
+    // const userData = localStorage.getItem("dataUser");
+    // if (userData) {
+    //   const user = JSON.parse(userData)
+    //   console.log("dddd ", user);
+    //   if (user.typeUser == "USER") {
+    //     navigate("/dashboard", { replace: true });
+    //   } else if(user.typeUser == "CLIENT") {
+    //     navigate("/inicio", { replace: true });
+    //   }
+    // }
+
   }, [navigate]);
 
   const form = useForm<LoginFormData>({
@@ -47,7 +57,12 @@ const Login = () => {
       if ([200, 201].includes(response.status)) {
         toast({ title: "¡Inicio de sesión exitoso!", description: "Redirigiendo..." });
         localStorage.setItem("dataUser", JSON.stringify(response.data));
-        navigate("/dashboard");
+        if (response.data.userData.typeUser == "USER") {
+          navigate("/dashboard");
+        } else if(response.data.userData.typeUser == "CLIENT"){
+          navigate("/inicio");
+        }
+
       } else {
         toast({
           title: "ERROR",
@@ -135,6 +150,17 @@ const Login = () => {
                 )}
               />
 
+              <div className="text-right">
+                <button
+                  type="button"
+                  onClick={() => navigate("/forgot-password")}
+                  className="text-sm text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+                  disabled={isLoading}
+                >
+                  ¿Olvidaste tu contraseña?
+                </button>
+              </div>
+
               <Button
                 type="submit"
                 className="w-full bg-blue-600 hover:bg-blue-700"
@@ -158,7 +184,7 @@ const Login = () => {
       <div
         className="md:col-span-3 relative min-h-[40vh] md:min-h-screen hidden md:block"
         style={{
-          backgroundImage: "url('/assets/telemetry-hero.jpg')",
+          backgroundImage: `url(${BannerLogin})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}

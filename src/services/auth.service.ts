@@ -23,6 +23,14 @@ export const login = async (email: string, password: string) => {
  return response;
 };
 
+export const forgotPassword = async (email: string) => {
+  const response = await apiClient.post(BACKEND_ENDPOINTS.FORGOT_PASSWORD, { email }); 
+ return response;
+};
+
+
+
+
 
 export const register = async (data: {
   name: string;
