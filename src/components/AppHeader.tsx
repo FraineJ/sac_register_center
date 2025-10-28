@@ -13,7 +13,7 @@ import React from "react";
 interface UserData {
   name: string;
   lastName: string;
-  role?: string;
+  nameRol?: string;
 }
 
 // Custom SidebarTrigger component para mejor control
@@ -100,7 +100,7 @@ export function AppHeader() {
         
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 p-4">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="flex items-center gap-3 hover:bg-secondary">
@@ -110,17 +110,19 @@ export function AppHeader() {
                     {getInitials()}
                   </AvatarFallback>
                 </Avatar>
+
                 <div className="hidden md:block text-left">
                   <p className="text-sm font-medium text-foreground">
                     {userData.name}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {userData.role || "Usuario"}
+                    {userData.nameRol || "Usuario"}
                   </p>
                 </div>
                 <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform" />
               </Button>
             </DropdownMenuTrigger>
+
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuItem onClick={() => navigate('/perfil')} className="gap-2" style={{ cursor: "pointer" }}>
                 <User className="h-4 w-4" />

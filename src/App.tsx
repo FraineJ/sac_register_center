@@ -15,7 +15,6 @@ import Operations from "./pages/operations/Operations";
 import NotFound from "./pages/NotFound";
 import UserSchedule from "./pages/chedules/UserSchedule";
 import UserScheduleDetail from "./pages/chedules/UserScheduleDetail";
-import Tarifario from "./pages/tarifario/Tarifario";
 import ClientList from "./pages/lista-clientes/ClientList";
 import { ListaMantenimiento } from "./pages/lista-mantenimiento/ListaMantenimiento";
 import ManeuverDetails from "./pages/operations/ManeuverDetails";
@@ -23,6 +22,12 @@ import CompletedManeuverDetails from "./pages/operations/CompletedManeuverDetail
 import { MaintenanceDetail } from "./pages/lista-mantenimiento/DetalleMantenimiento";
 import Equipment from "./pages/equipment/Equipment";
 import FleetDetails from "./pages/fleet/components/FleetDetails";
+import { HomeView } from "./pages/home/HomeView";
+import ViewFleetUser from "./pages/fleet-user/components/ViewFleetUser";
+import FleetUser from "./pages/fleet-user/FleetUser";
+import ProfileView from "./pages/profile/ProfilePage";
+import ForgotPassword from "./pages/forgot-password/ForgotPassword";
+import ResetPassword from "./pages/reset-password/ResetPassword";
 
 const queryClient = new QueryClient();
 
@@ -34,23 +39,30 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Login />} />
-          <Route path="/" element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
+          <Route path="forgot-password" element={<ForgotPassword />} />
+          <Route path="reset-password" element={<ResetPassword />} />
+          <Route path="/" element={<AppLayout />}>
             <Route path="dashboard" element={<Index />} />
+            <Route path="inicio" element={<HomeView />} />
+
             <Route path="usuarios" element={<Users />} />
-            <Route path="horarios-de-trabajo" element={<UserSchedule />} />
-            <Route path="horario-usuario-detalle/:id" element={<UserScheduleDetail />} />
             <Route path="maniobras" element={<Operations />} />
             <Route path="lista-embarcaciones" element={<Fleet />} />
             <Route path="lista-clientes" element={<ClientList />} />
             <Route path="lista-mantenimiento" element={<ListaMantenimiento />} />
             <Route path="configuracion/empresa" element={<Company />} />
             <Route path="configuracion/rol" element={<Roles />} />
-            <Route path="configuracion/tarifario" element={<Tarifario />} />
             <Route path="equipos" element={<Equipment />} />
             <Route path="fleet-details/:id" element={<FleetDetails />} />
-            <Route path="maniobra-detalle/:id" element={<ManeuverDetails />} />
-            <Route path="maniobra-completada/:id" element={<CompletedManeuverDetails />} />
+            <Route path="view-fleet/:id" element={<ViewFleetUser />} />
+            <Route path="embarcaciones" element={<FleetUser />} />
+            <Route path="perfil" element={<ProfileView />} />
+           
 
+
+
+
+            
 
           </Route>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

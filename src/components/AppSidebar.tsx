@@ -18,6 +18,7 @@ import { NavLink } from "react-router-dom";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useEffect, useState } from "react";
+import LogoSac from "../../public/logo-banner.png";
 
 // Importa los íconos necesarios
 import {
@@ -34,7 +35,8 @@ import {
   IdCard,
   DollarSign,
   Wrench,
-  Construction
+  Construction,
+  Home
 } from "lucide-react";
 
 // Mapeo de nombres de íconos a componentes
@@ -57,7 +59,8 @@ const iconComponents: Record<string, React.ComponentType<any>> = {
   "circle-user-round": CircleUserRound,
   "users-round": UsersRound,
   "wrench": Wrench,
-  "construction": Construction
+  "construction": Construction,
+  "home" : Home
 };
 
 export function AppSidebar() {
@@ -163,15 +166,23 @@ export function AppSidebar() {
       {/* Logo con animación de altura */}
       <div
         className={cn(
-          "border-b flex items-center justify-center",
+          "border-b flex items-center ",
           "transition-all duration-300 ease-in-out",
-          collapsed ? "h-16 p-2" : "h-20 p-4"
+          collapsed ? "h-16 flex p-2 justify-center!" : "h-20 p-4 flex justify-start"
         )}
       >
         {collapsed ? (
-          <span className="text-lg font-bold animate-fade-in">I</span>
+          <span className="text-lg font-bold animate-fade-in m-auto">I</span>
         ) : (
-          <span className="text-lg font-medium animate-fade-in">Sac register</span>
+          <div className="flex gap-2 items-center">
+            <img
+              src={LogoSac}
+              width={60}
+              className="rounded-lg"
+              alt="Logo SAC"
+            />
+            <span className="text-lg font-medium animate-fade-in">Sac register</span>
+          </div>
         )}
       </div>
 
