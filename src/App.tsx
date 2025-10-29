@@ -9,7 +9,7 @@ import Login from "./pages/Login";
 import Index from "./pages/Index";
 import Users from "./pages/Users/Users";
 import Company from "./pages/Company";
-import Roles from "./pages/Roles";
+import Roles from "./pages/roles/Roles";
 import Fleet from "./pages/fleet/Fleet";
 import Operations from "./pages/operations/Operations";
 import NotFound from "./pages/NotFound";
@@ -40,7 +40,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Login />} />
           <Route path="forgot-password" element={<ForgotPassword />} />
-          <Route path="reset-password" element={<ResetPassword />} />
+          <Route path="reset-password/:token" element={<ResetPassword />} />
           <Route path="/" element={<AppLayout />}>
             <Route path="dashboard" element={<Index />} />
             <Route path="inicio" element={<HomeView />} />

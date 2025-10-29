@@ -13,6 +13,8 @@ import { cn } from "@/lib/utils";
 import { rolService } from '@/services/rol.services';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { menuService } from "@/services/menu.service";
+import { RolePermission } from "./interfaces/role-permission.interface";
+import { Role } from "./interfaces/rol.interface";
 
 interface SubMenuAction {
   id: number;
@@ -21,14 +23,7 @@ interface SubMenuAction {
   menu_id?: number;
 }
 
-interface RolePermission {
-  id?: number;
-  action_id: number;
-  allowed: boolean;
-  role_id?: string;
-  sub_menu_id: number;
-  menu_id: number;
-}
+
 
 interface SubMenu {
   icon: string;
@@ -54,12 +49,7 @@ interface MenuItem {
   sub_menus: SubMenu[];
 }
 
-interface Role {
-  id?: string;
-  name: string;
-  description: string;
-  permissions: RolePermission[];
-}
+
 
 export default function Roles() {
   const [menuData, setMenuData] = useState<MenuItem[]>([]);
