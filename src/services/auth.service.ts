@@ -28,6 +28,11 @@ export const forgotPassword = async (email: string) => {
  return response;
 };
 
+export const changePassword = async (token: string, data: any ) => {
+  console.log("password", data );
+  const response = await apiClient.post(`${BACKEND_ENDPOINTS.CHANGE_PASSWORD}/${token}`, { "password" : data }); 
+ return response;
+};
 
 
 
