@@ -156,7 +156,7 @@ const ForgotPassword = () => {
           {/* Botón de volver */}
           <Button
             variant="ghost"
-            onClick={() => navigate("/login")}
+            onClick={() => navigate("/")}
             className="mb-6 -ml-3"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
