@@ -16,7 +16,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { login } from "@/services/auth.service";
 import { Loader2, Eye, EyeOff, Mail, Lock } from "lucide-react";
-import BannerLogin from '../../public/banner-login.jpg';
+import BannerLogin from '../../public/banner-login.png';
 
 const loginSchema = z.object({
   email: z.string().email("Ingresa un email válido").min(1, "El email es requerido"),
@@ -59,7 +59,7 @@ const Login = () => {
         localStorage.setItem("dataUser", JSON.stringify(response.data));
         if (response.data.userData.typeUser == "USER") {
           navigate("/dashboard");
-        } else if(response.data.userData.typeUser == "CLIENT"){
+        } else if(response.data.userData.typeUser == "CLIENT" || response.data.userData.typeUser == "CONTRIBUTORS"){
           navigate("/inicio");
         }
 

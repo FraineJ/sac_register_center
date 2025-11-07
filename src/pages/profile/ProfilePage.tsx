@@ -1,6 +1,8 @@
 // ProfileView.jsx
+import { resertPassword } from '@/services/auth.service';
 import { userService } from '@/services/user.services';
 import React, { useState, useEffect } from 'react';
+import { toast } from '@/components/ui/use-toast';
 
 const ProfileView = () => {
     const [userData, setUserData] = useState(null);
@@ -8,6 +10,10 @@ const ProfileView = () => {
     const [error, setError] = useState(null);
     const [profileImage, setProfileImage] = useState('/default-avatar.png');
     const [isEditingPassword, setIsEditingPassword] = useState(false);
+    const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+    const [showNewPassword, setShowNewPassword] = useState(false);
+    const [showNewPasswordConfirm, setShowNewPasswordConfirm] = useState(false);
+
     const [passwordData, setPasswordData] = useState({
         currentPassword: '',
         newPassword: '',
@@ -59,11 +65,16 @@ const ProfileView = () => {
         }
 
         try {
-            // Aquí iría la llamada a tu API para cambiar la contraseña
-            console.log('Cambiando contraseña:', passwordData);
 
-            // Simulando una llamada exitosa
-            alert('Contraseña cambiada exitosamente');
+            const response = await resertPassword(passwordData.newPassword)
+
+            if (response.status == 200 || response.status == 201) {
+                toast({
+                    title: "Exito",
+                    description: "Contraseña cambiada exitosamente",
+                    variant: "default",
+                });
+            }
             setIsEditingPassword(false);
             setPasswordData({
                 currentPassword: '',
@@ -71,7 +82,11 @@ const ProfileView = () => {
                 confirmPassword: ''
             });
         } catch (err) {
-            alert('Error al cambiar la contraseña');
+            toast({
+                title: "Error",
+                description: "Ha ocurrido un error al cambiar la contraseña",
+                variant: "destructive",
+            });
         }
     };
 
@@ -203,33 +218,102 @@ const ProfileView = () => {
                                     <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700">
                                         Contraseña Actual
                                     </label>
-                                    <input
-                                        type="password"
-                                        id="currentPassword"
-                                        name="currentPassword"
-                                        value={passwordData.currentPassword}
-                                        onChange={handlePasswordChange}
-                                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                        required
-                                    />
+                                    <div className="mt-1 relative">
+                                        <input
+                                            type={showCurrentPassword ? "text" : "password"}
+                                            id="currentPassword"
+                                            name="currentPassword"
+                                            value={passwordData.currentPassword}
+                                            onChange={handlePasswordChange}
+                                            className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 pr-10"
+                                            required
+                                        />
+                                        <button
+                                            type="button"
+                                            className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                                            onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                                        >
+                                            {showCurrentPassword ? (
+                                                <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L6.59 6.59m9.02 9.02l3.83 3.83" />
+                                                </svg>
+                                            ) : (
+                                                <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                </svg>
+                                            )}
+                                        </button>
+                                    </div>
                                 </div>
 
                                 <div>
                                     <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700">
                                         Nueva Contraseña
                                     </label>
-                                    <input
-                                        type="password"
-                                        id="newPassword"
-                                        name="newPassword"
-                                        value={passwordData.newPassword}
-                                        onChange={handlePasswordChange}
-                                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                        required
-                                    />
+                                    <div className="mt-1 relative">
+                                        <input
+                                            type={showNewPassword ? "text" : "password"}
+                                            id="newPassword"
+                                            name="newPassword"
+                                            value={passwordData.newPassword}
+                                            onChange={handlePasswordChange}
+                                            className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 pr-10"
+                                            required
+                                        />
+                                        <button
+                                            type="button"
+                                            className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                                            onClick={() => setShowNewPassword(!showNewPassword)}
+                                        >
+                                            {showNewPassword ? (
+                                                <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L6.59 6.59m9.02 9.02l3.83 3.83" />
+                                                </svg>
+                                            ) : (
+                                                <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                </svg>
+                                            )}
+                                        </button>
+                                    </div>
                                 </div>
 
-                                <div>
+                                 <div>
+                                    <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+                                         Confirmar Nueva Contraseña
+                                    </label>
+                                    <div className="mt-1 relative">
+                                        <input
+                                            type={showNewPasswordConfirm ? "text" : "password"}
+                                            id="confirmPassword"
+                                            name="confirmPassword"
+                                            value={passwordData.confirmPassword}
+                                            onChange={handlePasswordChange}
+                                            className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 pr-10"
+                                            required
+                                        />
+                                        <button
+                                            type="button"
+                                            className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                                            onClick={() => setShowNewPasswordConfirm(!showNewPasswordConfirm)}
+                                        >
+                                            {showNewPasswordConfirm ? (
+                                                <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L6.59 6.59m9.02 9.02l3.83 3.83" />
+                                                </svg>
+                                            ) : (
+                                                <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                </svg>
+                                            )}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* <div>
                                     <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
                                         Confirmar Nueva Contraseña
                                     </label>
@@ -242,7 +326,7 @@ const ProfileView = () => {
                                         className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                                         required
                                     />
-                                </div>
+                                </div> */}
 
                                 <button
                                     type="submit"

@@ -19,19 +19,25 @@ authApi.interceptors.request.use((config) => {
 
 
 export const login = async (email: string, password: string) => {
-  const response = await apiClient.post(BACKEND_ENDPOINTS.LOGIN, { email, password }); 
- return response;
+  const response = await apiClient.post(BACKEND_ENDPOINTS.LOGIN, { email, password });
+  return response;
 };
 
 export const forgotPassword = async (email: string) => {
-  const response = await apiClient.post(BACKEND_ENDPOINTS.FORGOT_PASSWORD, { email }); 
- return response;
+  const response = await apiClient.post(BACKEND_ENDPOINTS.FORGOT_PASSWORD, { email });
+  return response;
 };
 
-export const changePassword = async (token: string, data: any ) => {
-  console.log("password", data );
-  const response = await apiClient.post(`${BACKEND_ENDPOINTS.CHANGE_PASSWORD}/${token}`, { "password" : data }); 
- return response;
+export const changePassword = async (token: string, data: any) => {
+  const response = await apiClient.post(`${BACKEND_ENDPOINTS.CHANGE_PASSWORD}/${token}`, { "password": data });
+  return response;
+};
+
+
+export const resertPassword = async (data: any) => {
+
+  const response = await apiClient.post(`${BACKEND_ENDPOINTS.RESERT_PASSWORD}`, { "newPassword": data });
+  return response;
 };
 
 

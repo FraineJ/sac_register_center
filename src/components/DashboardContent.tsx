@@ -18,13 +18,16 @@ type Activity = {
   expiry: string; // YYYY-MM-DD
 };
 
+type TabType = 'all' | 'expiring';
+
 export function DashboardContent() {
   // Mover los estados dentro del componente
   const [fleets, setFleet] = useState<IFleet[]>([]);
   const [clients, setClients] = useState<IClient[]>([]);
   const [fleetsDocumentExpire, setFleetDocumentExpire] = useState<IFleetDocument[]>([]);
+  const [allDocuments, setAllDocuments] = useState<IFleetDocument[]>([]);
+  const [activeTab, setActiveTab] = useState<TabType>('expiring');
   const navigate = useNavigate();
-
 
   // Mover las funciones dentro del componente
   const listFleet = async () => {
@@ -51,7 +54,17 @@ export function DashboardContent() {
   const listDocumentsExpire = async () => {
     try {
       const response = await fleetService.listDocumentExpire();
-      setFleetDocumentExpire(response.data);
+      const documents = response.data;
+      setAllDocuments(documents);
+
+      // Filtrar documentos que están prontos a expirar (fecha actual >= windowStart)
+      const currentDate = new Date();
+      const expiringDocuments = documents.filter(doc => {
+        const windowStart = new Date(doc.windowStart);
+        return currentDate >= windowStart;
+      });
+
+      setFleetDocumentExpire(expiringDocuments);
     } catch (error: any) {
       // Verificar si es un error del servidor (5xx)
       const isServerError = error?.response?.status >= 500 ||
@@ -96,9 +109,8 @@ export function DashboardContent() {
   useEffect(() => {
     listClient();
     listFleet();
-    listDocumentsExpire()
+    listDocumentsExpire();
   }, []);
-
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('es-CO');
@@ -107,6 +119,21 @@ export function DashboardContent() {
   const viewVessel = (vesselId: string) => {
     navigate(`/fleet-details/${vesselId}`);
   };
+
+  // Función para obtener los documentos según la pestaña activa
+  const getFilteredDocuments = () => {
+    if (activeTab === 'all') {
+      return allDocuments;
+    } else {
+      return fleetsDocumentExpire;
+    }
+  };
+
+  const truncateText = (text, maxLength) => {
+    return text.length > maxLength ? `${text.substring(0, maxLength)}...` : text;
+  };
+
+  const filteredDocuments = getFilteredDocuments();
 
   return (
     <main className="min-h-screen bg-slate-50">
@@ -134,9 +161,33 @@ export function DashboardContent() {
       </section>
 
       <section className="px-6 mt-8 pb-10">
-        <h2 className="text-xl font-semibold text-slate-900 mb-4">
-          Certificados prontos a vencer
-        </h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold text-slate-900">
+            {activeTab === 'all' ? 'Todos los certificados' : 'Certificados prontos a vencer'}
+          </h2>
+
+          {/* Tabs */}
+          <div className="flex space-x-1 rounded-lg bg-slate-400 p-1">
+            <button
+              onClick={() => setActiveTab('all')}
+              className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${activeTab === 'all'
+                ? 'bg-white text-slate-900 shadow-sm'
+                : 'text-white hover:text-slate-900'
+                }`}
+            >
+              Todos los documentos
+            </button>
+            <button
+              onClick={() => setActiveTab('expiring')}
+              className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${activeTab === 'expiring'
+                ? 'bg-white text-slate-900 shadow-sm'
+                : 'text-white hover:text-slate-900'
+                }`}
+            >
+              Prontos a expirar
+            </button>
+          </div>
+        </div>
 
         <div className="rounded-lg border border-slate bg-white overflow-hidden">
           <table className="min-w-full table-fixed">
@@ -155,67 +206,78 @@ export function DashboardContent() {
               <tr className="text-sm font-medium text-white bg-primary">
                 <th scope="col" className="px-4 py-3 text-center">Nombre de la embarcación</th>
                 <th scope="col" className="px-4 py-3 text-center">Compañias</th>
-                <th scope="col" className="px-4 py-3 text-center">Nombre del certificado</th>
                 <th scope="col" className="px-4 py-3 text-center">Nombre del documento</th>
+                <th scope="col" className="px-4 py-3 text-center">N° consecutivo</th>
                 <th scope="col" className="px-4 py-3 text-center">Fecha de expiración</th>
                 <th scope="col" className="px-4 py-3 text-center">Inicio de ventana</th>
                 <th scope="col" className="px-4 py-3 text-center">Fin de ventana</th>
                 <th scope="col" className="px-4 py-3 text-center">Acción</th>
-
               </tr>
             </thead>
 
             <tbody className="divide-y divide-slate text-sm">
-              {fleetsDocumentExpire.map((row, idx) => (
-                <tr key={idx} className="hover:bg-slate-50">
-                  <td className="px-4 py-4 text-slate-900">
-                    {row.fleet.name}
+              {filteredDocuments.length > 0 ? (
+                filteredDocuments.map((row, idx) => (
+                  <tr key={idx} className="hover:bg-slate-50">
+                    <td className="px-4 py-4 text-slate-900">
+                      {row.fleet.name}
+                    </td>
+
+                    <td className="px-4 py-4 text-slate-900 text-center">
+                      {row.fleet.user.name}
+                    </td>
+
+                    <td className="px-4 py-4 ">
+                      {/* Más espacio + permite múltiples líneas */}
+                      <span className="inline-flex items-start rounded-md bg-slate px-3 py-2 text-xs sm:text-sm font-medium text-slate-700 whitespace-normal break-words">
+                        {row.listDocument.name}
+                      </span>
+                    </td>
+
+                    <td className="px-4 py-4 text-center">
+                      <span className="text-sky-600">
+                        {truncateText(row.name, 20)}
+                      </span>
+                    </td>
+
+                    <td className="px-4 py-4 text-center">
+                      <span className="text-sky-600"> {formatDate(row.expirationDate)}</span>
+                    </td>
+
+                    <td className="px-4 py-4 text-center">
+                      <span className={`${activeTab === 'expiring' ? 'text-red-600 font-medium' : 'text-sky-600'
+                        }`}>
+                        {formatDate(row.windowStart)}
+                      </span>
+                    </td>
+
+                    <td className="px-4 py-4 text-center">
+                      <span className="text-sky-600"> {formatDate(row.windowEnd)}</span>
+                    </td>
+
+                    <td className="px-4 py-4 text-center">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => viewVessel(row.fleet.id.toString())}
+                        className="h-8 w-8 p-0 hover:bg-info/10 hover:text-info"
+                        title="Ver documento"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={8} className="px-4 py-8 text-center text-slate-500">
+                    {activeTab === 'all'
+                      ? 'No hay documentos registrados'
+                      : 'No hay documentos prontos a expirar'
+                    }
                   </td>
-
-                  <td className="px-4 py-4 text-slate-900 text-center">
-                    {row.fleet.user.name}
-                  </td>
-
-                  <td className="px-4 py-4 ">
-                    {/* Más espacio + permite múltiples líneas */}
-                    <span className="inline-flex items-start rounded-md bg-slate px-3 py-2 text-xs sm:text-sm font-medium text-slate-700 whitespace-normal break-words">
-                      {row.listDocument.name}
-                    </span>
-                  </td>
-
-                  <td className="px-4 py-4 text-center">
-                    <span className="text-sky-600">{row.name}</span>
-                  </td>
-
-                  <td className="px-4 py-4 text-center">
-                    <span className="text-sky-600"> {formatDate(row.expirationDate)}</span>
-
-                  </td>
-
-                  <td className="px-4 py-4 text-center">
-                    <span className="text-sky-600"> {formatDate(row.windowStart)}</span>
-
-                  </td>
-
-                  <td className="px-4 py-4 text-center">
-                    <span className="text-sky-600"> {formatDate(row.windowEnd)}</span>
-
-                  </td>
-
-                  <td className="px-4 py-4 text-center">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => viewVessel(row.fleet.id.toString())}
-                      className="h-8 w-8 p-0 hover:bg-info/10 hover:text-info"
-                      title="Ver documento"
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                  </td>
-
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>

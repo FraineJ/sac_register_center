@@ -28,6 +28,7 @@ import FleetUser from "./pages/fleet-user/FleetUser";
 import ProfileView from "./pages/profile/ProfilePage";
 import ForgotPassword from "./pages/forgot-password/ForgotPassword";
 import ResetPassword from "./pages/reset-password/ResetPassword";
+import Colaboradores from "./pages/Colaborador/Colaboradores";
 
 const queryClient = new QueryClient();
 
@@ -53,10 +54,13 @@ const App = () => (
             <Route path="configuracion/empresa" element={<Company />} />
             <Route path="configuracion/rol" element={<Roles />} />
             <Route path="equipos" element={<Equipment />} />
-            <Route path="fleet-details/:id" element={<FleetDetails />} />
-            <Route path="view-fleet/:id" element={<ViewFleetUser />} />
+            <Route path="fleet-details/:id" element={<FleetDetails />} /> {/* vista para los adminitradores  */}
+            
+            
+            <Route path="view-fleet/:id" element={<ViewFleetUser />} />  {/* vista para los clientes  */}
             <Route path="embarcaciones" element={<FleetUser />} />
             <Route path="perfil" element={<ProfileView />} />
+            <Route path="colaborador" element={<Colaboradores />} />
            
 
 

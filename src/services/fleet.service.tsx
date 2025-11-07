@@ -35,9 +35,9 @@ class FleetService {
         }
     }
 
-    async getFleetById(id: number) {
+    async getFleetById(id: number, userdId: number) {
         try {
-            const response = await apiClient.get(`${BACKEND_ENDPOINTS.GET_FLEET_BY_ID}/${id}`);
+            const response = await apiClient.get(`${BACKEND_ENDPOINTS.GET_FLEET_BY_ID}/?id=${id}&userId=${userdId}`);
 
             return response;
         } catch (error) {
@@ -79,7 +79,17 @@ class FleetService {
 
     async update(vesselId: number, data: any) {
         try {
-            const response = await apiClient.put(`${BACKEND_ENDPOINTS.UPDATE_FLEET}/${vesselId}`, data);
+
+            const response = await axios.put(`${apiBaseUrl}/${BACKEND_ENDPOINTS.UPDATE_FLEET}/${vesselId}`, data,
+                {
+                    withCredentials: true,
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    },
+                });
+
+
+            return response;
 
             return response;
         } catch (error) {
@@ -113,6 +123,16 @@ class FleetService {
                 params: { url: url }, // Enviar como parámetro query
                 responseType: 'blob'
             });
+            return response;
+        } catch (error) {
+            this.handleError(error);
+        }
+    }
+
+    async notification(data: any) {
+        try {
+            const response = await apiClient.post(`${BACKEND_ENDPOINTS.NOTIFY_FLEET}`, data);
+
             return response;
         } catch (error) {
             this.handleError(error);

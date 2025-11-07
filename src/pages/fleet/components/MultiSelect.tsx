@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import { Role } from '@/pages/roles/interfaces/rol.interface';
 
 interface MultiSelectProps {
+  id?: string; // Nuevo prop id
   options: Role[];
   selectedValues: (string | number)[];
   onValueChange: (values: (string | number)[]) => void;
@@ -18,6 +19,7 @@ interface MultiSelectProps {
 }
 
 export const MultiSelect: React.FC<MultiSelectProps> = ({
+  id, // Nuevo prop id
   options,
   selectedValues,
   onValueChange,
@@ -124,6 +126,7 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
       <Button
         type="button"
         variant="outline"
+        id={id} // Aplicar el id al botón
         className={cn(
           "w-full justify-between h-auto min-h-10",
           isOpen && "ring-2 ring-ring ring-offset-2"

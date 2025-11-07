@@ -43,6 +43,9 @@ interface IFleet {
     expires?: boolean;
     windowStart?: string;
     windowEnd?: string;
+    notification?: Array<{
+      fleetDocumentId: number
+    }>
   }>;
   image?: string;
   status?: string;
@@ -60,13 +63,17 @@ interface IFleet {
     companyName?: string;
     taxId?: string;
   };
+
 }
 
 // Servicio para obtener los datos de la embarcación
 const fetchVesselData = async (id: string): Promise<IFleet> => {
+
+  const dataUser = localStorage.getItem("dataUser");
+  const parsedData = JSON.parse(dataUser);
+
   try {
-    const response = await fleetService.getFleetById(Number(id));
-    console.log("datos ", response.data);
+    const response = await fleetService.getFleetById(Number(id), parsedData.userData.id);
     return response.data;
   } catch (error) {
     toast({
@@ -110,14 +117,6 @@ const ViewFleetUser: React.FC = () => {
 
   const handleClose = () => {
     navigate(-1); // Regresa a la página anterior
-  };
-
-  const handleEdit = () => {
-    if (vessel) {
-      // Navegar a la página de edición o abrir modal de edición
-      console.log('Editar embarcación:', vessel);
-      // navigate(`/edit-fleet/${vessel.id}`);
-    }
   };
 
   const formatDate = (dateString?: string) => {
@@ -319,7 +318,7 @@ const ViewFleetUser: React.FC = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
           {/* Columna izquierda - Información de la Embarcación */}
           <div className="lg:col-span-2 space-y-6">
             {/* Información de la Embarcación */}
@@ -389,58 +388,7 @@ const ViewFleetUser: React.FC = () => {
             </div>
           </div>
 
-          {/* Columna derecha - Información del Propietario/Cliente */}
-          <div className="space-y-6">
-            {/* Propietario/Cliente */}
-            <div className="bg-white rounded-lg border border-slate-300 p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Armador</h2>
-              <div className="space-y-4">
-                {vessel.user?.companyName && (
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Nombre de la Empresa</label>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Building className="h-4 w-4 text-gray-600" />
-                      <p className="text-gray-900 font-semibold">{vessel.user.companyName}</p>
-                    </div>
-                  </div>
-                )}
-                {vessel.user?.taxId && (
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">NIT/Identificación Tributaria</label>
-                    <p className="text-gray-900 font-semibold">{vessel.user.taxId}</p>
-                  </div>
-                )}
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Contacto</label>
-                  <div className="space-y-2 mt-1">
-                    <div className="flex items-center gap-2">
-                      <User className="h-4 w-4 text-gray-600" />
-                      <span className="text-gray-900">{vessel.user?.name || '—'}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Mail className="h-4 w-4 text-gray-600" />
-                      <span className="text-gray-900">{vessel.user?.email || '—'}</span>
-                    </div>
-                    {vessel.user?.phone && (
-                      <div className="flex items-center gap-2">
-                        <Phone className="h-4 w-4 text-gray-600" />
-                        <span className="text-gray-900">{vessel.user.phone}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                {vessel.user?.address && (
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Dirección</label>
-                    <div className="flex items-center gap-2 mt-1">
-                      <MapPin className="h-4 w-4 text-gray-600" />
-                      <p className="text-gray-900">{vessel.user.address}</p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
+        
         </div>
 
         {/* Documentos */}
@@ -522,7 +470,7 @@ const ViewFleetUser: React.FC = () => {
                         <td className="px-4 py-4 text-center">
                           <div className="flex items-center justify-center gap-2">
                             <div className="w-3 h-3 rounded-full bg-slate-300"></div>
-                            <span className="text-slate-600 text-sm">No</span>
+                            <span className="text-slate-600 text-sm">{doc.notification.length > 0 ? 'Si' : 'No'}</span>
                           </div>
                         </td>
                         <td className="px-4 py-4">
@@ -536,15 +484,7 @@ const ViewFleetUser: React.FC = () => {
                             >
                               <Download className="h-4 w-4" />
                             </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleNotifyClient(doc)}
-                              className="h-8 w-8 p-0 rounded-lg text-slate-600 hover:text-sky-600 hover:bg-slate-100"
-                              aria-label="Notificar cliente"
-                            >
-                              <Bell className="h-4 w-4" />
-                            </Button>
+                      
                             <Button
                               variant="ghost"
                               size="sm"

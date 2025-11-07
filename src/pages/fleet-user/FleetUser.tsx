@@ -77,7 +77,7 @@ const FleetUser = () => {
 
   const viewVessel = (vesselId: string) => {
     // Navegar directamente a la página de edición usando el ID
-    navigate(`/fleet-details/${vesselId}`);
+    navigate(`/view-fleet/${vesselId}`);
   };
 
   const listFleet = async () => {

@@ -43,6 +43,9 @@ interface IFleet {
     expires?: boolean;
     windowStart?: string;
     windowEnd?: string;
+     notification?: Array<{
+      fleetDocumentId: number
+    }>
   }>;
   image?: string;
   status?: string;
@@ -64,8 +67,12 @@ interface IFleet {
 
 // Servicio para obtener los datos de la embarcación
 const fetchVesselData = async (id: string): Promise<IFleet> => {
+
+  const dataUser = localStorage.getItem("dataUser");
+  const parsedData = JSON.parse(dataUser);
+
   try {
-    const response = await fleetService.getFleetById(Number(id));
+    const response = await fleetService.getFleetById(Number(id), parsedData.userData.id);
     console.log("datos ", response.data);
     return response.data;
   } catch (error) {
@@ -200,9 +207,15 @@ const FleetDetails: React.FC = () => {
     }
   };
 
-  const handleNotifyClient = (document: any) => {
-    console.log('Notificar al cliente sobre:', document.name);
-    // Implementar lógica de notificación
+  const handleNotifyClient = async (document: any) => {
+    const response = await fleetService.notification(document);
+    if (response.status == 201 || response.status == 200) {
+      toast({
+        title: "Notificación",
+        description: "Notificación enviada con exito",
+        variant: "default",
+      });
+    }
   };
 
   const handleViewHistory = (documentUrl: string, documentName: string) => {
@@ -522,7 +535,7 @@ const FleetDetails: React.FC = () => {
                         <td className="px-4 py-4 text-center">
                           <div className="flex items-center justify-center gap-2">
                             <div className="w-3 h-3 rounded-full bg-slate-300"></div>
-                            <span className="text-slate-600 text-sm">No</span>
+                            <span className="text-slate-600 text-sm">{doc.notification.length > 0 ? 'Si' : 'No'}</span>
                           </div>
                         </td>
                         <td className="px-4 py-4">

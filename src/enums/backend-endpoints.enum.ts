@@ -1,10 +1,12 @@
 export enum BACKEND_ENDPOINTS {
     REGISTER_ADMIN = "api/auth/register/local/admin",
     REGISTER_USER = "api/auth/register/local/user",
+    CREATE_CONTRIBUTORS = "api/users/collaborators",
     LOGIN = "api/auth/login",
     FORGOT_PASSWORD = "api/auth/forgot-password",
     VERIFY_RESET_TOKEN = "api/auth/verify-reset-token",
     CHANGE_PASSWORD = "api/auth/change-password",
+    RESERT_PASSWORD = "api/auth/resert-password",
     ACTIVATE_ACCOUNT = "api/auth/activate-account",
     GET_ROL = "api/roles/",
     CREATE_ROL = "api/roles/create",
@@ -12,6 +14,7 @@ export enum BACKEND_ENDPOINTS {
     DELETE_ROL = "api/roles",
     GET_BUSINESSES = "api/businesses", 
     GET_USERS = "api/users",
+    GET_CONTRIBUTORS = "api/users/collaborators",
     UPDATE_USERS = "api/users",
     DELETE_USERS_WITH_SCHEDULE = "api/users/deleteUserWithSchedule",
     DELETE_USERS = "api/users",
@@ -52,6 +55,7 @@ export enum BACKEND_ENDPOINTS {
     FLEET_DOWNLOAND_FILE = "api/fleet/download",
     GET_FLEET_BY_ID = "api/fleet/getById",
     GET_FLEET_BY_USER = "api/fleet/getByUser",
+    NOTIFY_FLEET = "api/fleet/notify",
 
     LIST_FLEET_DOCUMENT_BY_USER = "api/fleet/document-expire-user",
     GET_MENU = "api/menu",

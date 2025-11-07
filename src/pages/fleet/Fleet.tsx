@@ -40,7 +40,7 @@ interface IDocument {
   type?: string;
   expires: boolean;
   listDocumentId: string,
-  shareWith: string[]
+  shareWith: (string | number)[];
 }
 
 interface IFleet {
@@ -73,7 +73,7 @@ const Fleet = () => {
       type: '',
       expires: true,
       listDocumentId: '',
-      shareWith: [] as string[]
+      shareWith: []
 
     }
   ]);
@@ -181,7 +181,7 @@ const Fleet = () => {
       type: '',
       expires: true,
       listDocumentId: '',
-      shareWith: []
+      shareWith: [] // Inicializar con array vacío
     }]);
   };
 
@@ -218,6 +218,86 @@ const Fleet = () => {
     return !Object.values(newErrors).some(error => error !== '');
   };
 
+  // const handleSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+
+  //   if (!validateForm()) {
+  //     toast({
+  //       title: "Error de validación",
+  //       description: "Por favor complete todos los campos requeridos",
+  //       variant: "destructive",
+  //     });
+  //     return;
+  //   }
+
+
+
+  //   setLoading(true);
+
+  //   try {
+  //     const formDataToSend = new FormData();
+
+  //     // 1. Agregar la imagen como "logo" (nombre que espera el backend)
+  //     if (formData.image) {
+  //       formDataToSend.append('logo', formData.image);
+  //     }
+
+  //     // 2. Agregar campos individuales del fleet (no como JSON string)
+  //     formDataToSend.append('name', formData.name);
+  //     formDataToSend.append('identification', formData.identification);
+  //     formDataToSend.append('flag', formData.flag);
+  //     formDataToSend.append('type', formData.type);
+  //     formDataToSend.append('capacity', formData.capacity);
+  //     formDataToSend.append('user_id', formData.armador);
+
+  //     // 3. Agregar documentos como archivos y metadatos
+  //     const validDocuments = documents.filter(doc => doc.file && doc.expirationDate);
+
+  //     validDocuments.forEach((doc, index) => {
+  //       if (doc.file) {
+  //         // Agregar el archivo del documento
+  //         formDataToSend.append(`documents[${index}][file]`, doc.file);
+  //         // Agregar metadatos del documento
+  //         formDataToSend.append(`documents[${index}][name]`, doc.name || doc.file.name);
+  //         formDataToSend.append(`documents[${index}][expirationDate]`, doc.expirationDate);
+  //         formDataToSend.append(`documents[${index}][expires]`, doc.expires.toString());
+  //         formDataToSend.append(`documents[${index}][listDocumentId]`, doc.listDocumentId);
+  //         formDataToSend.append(`documents[${index}][shareWith]`, JSON.stringify(doc.shareWith));
+
+  //       }
+  //     });
+
+  //     if (editingVessel) {
+  //       await handleUpdateVessel(editingVessel.id, formDataToSend);
+  //     } else {
+
+  //       const hasInvalidDocuments = documents.some(doc =>
+  //         (doc.file && doc.expires && !doc.expirationDate) ||
+  //         (!doc.file && doc.expirationDate)
+  //       );
+
+  //       if (hasInvalidDocuments) {
+  //         toast({
+  //           title: "Error en documentos",
+  //           description: "Cada documento debe tener tanto archivo como fecha de vencimiento",
+  //           variant: "destructive",
+  //         });
+  //         return;
+  //       }
+  //       await handleCreateVessel(formDataToSend); // Cambiado a formDataToSend
+  //     }
+
+  //     resetForm();
+
+  //   } catch (error) {
+  //     handleSubmitError(error);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -230,31 +310,17 @@ const Fleet = () => {
       return;
     }
 
-    const hasInvalidDocuments = documents.some(doc =>
-      (doc.file && doc.expires && !doc.expirationDate) ||
-      (!doc.file && doc.expirationDate)
-    );
-
-    if (hasInvalidDocuments) {
-      toast({
-        title: "Error en documentos",
-        description: "Cada documento debe tener tanto archivo como fecha de vencimiento",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setLoading(true);
 
     try {
       const formDataToSend = new FormData();
 
-      // 1. Agregar la imagen como "logo" (nombre que espera el backend)
+      // 1. Agregar la imagen como "logo"
       if (formData.image) {
         formDataToSend.append('logo', formData.image);
       }
 
-      // 2. Agregar campos individuales del fleet (no como JSON string)
+      // 2. Agregar campos individuales
       formDataToSend.append('name', formData.name);
       formDataToSend.append('identification', formData.identification);
       formDataToSend.append('flag', formData.flag);
@@ -262,25 +328,56 @@ const Fleet = () => {
       formDataToSend.append('capacity', formData.capacity);
       formDataToSend.append('user_id', formData.armador);
 
-      // 3. Agregar documentos como archivos y metadatos
-      const validDocuments = documents.filter(doc => doc.file && doc.expirationDate);
+      // 3. Agregar documentos - manejar tanto existentes como nuevos
+      const validDocuments = documents.filter(doc => {
+        // Para edición: incluir documentos existentes (tienen name pero no file)
+        // y documentos nuevos (tienen file)
+        const hasExistingFile = !!doc.name && !doc.file;
+        const hasNewFile = !!doc.file;
 
-      validDocuments.forEach((doc, index) => {
-        if (doc.file) {
-          // Agregar el archivo del documento
-          formDataToSend.append(`documents[${index}][file]`, doc.file);
-          // Agregar metadatos del documento
-          formDataToSend.append(`documents[${index}][name]`, doc.name || doc.file.name);
-          formDataToSend.append(`documents[${index}][expirationDate]`, doc.expirationDate);
-          formDataToSend.append(`documents[${index}][expires]`, doc.expires.toString());
-          formDataToSend.append(`documents[${index}][listDocumentId]`, doc.listDocumentId);
+        // Validar según si expira o no
+        if (doc.expires) {
+          return (hasExistingFile || hasNewFile) && doc.expirationDate;
+        } else {
+          return hasExistingFile || hasNewFile;
         }
       });
+
+      console.log('Valid documents for submission:', validDocuments);
+
+      validDocuments.forEach((doc, index) => {
+        // Agregar archivo si es nuevo
+        if (doc.file) {
+          formDataToSend.append(`documents[${index}][file]`, doc.file);
+        }
+
+        // Agregar metadatos (para ambos: nuevos y existentes)
+        formDataToSend.append(`documents[${index}][name]`, doc.name || doc.file?.name || '');
+        formDataToSend.append(`documents[${index}][expirationDate]`, doc.expirationDate || '');
+        formDataToSend.append(`documents[${index}][expires]`, doc.expires.toString());
+        formDataToSend.append(`documents[${index}][listDocumentId]`, doc.listDocumentId);
+
+        // Para documentos existentes, incluir el ID si existe
+        if (doc.id && !doc.file) {
+          formDataToSend.append(`documents[${index}][id]`, doc.id);
+        }
+
+        // Para arrays, enviar como string JSON
+        if (Array.isArray(doc.shareWith)) {
+          formDataToSend.append(`documents[${index}][shareWith]`, JSON.stringify(doc.shareWith));
+        }
+      });
+
+      // DEBUG: Verificar lo que se envía
+      console.log('FormData contents:');
+      for (let [key, value] of formDataToSend.entries()) {
+        console.log(key, value);
+      }
 
       if (editingVessel) {
         await handleUpdateVessel(editingVessel.id, formDataToSend);
       } else {
-        await handleCreateVessel(formDataToSend); // Cambiado a formDataToSend
+        await handleCreateVessel(formDataToSend);
       }
 
       resetForm();
@@ -317,9 +414,9 @@ const Fleet = () => {
     }
   };
 
-  const handleUpdateVessel = async (vesselId: number, formData: FormData) => {
+  const handleUpdateVessel = async (vesselId: number, formDataToSend) => {
     try {
-      const response = await fleetService.update(vesselId, formData);
+      const response = await fleetService.update(vesselId, formDataToSend);
 
       toast({
         title: "Embarcación actualizada",
@@ -384,7 +481,6 @@ const Fleet = () => {
 
 
   const editVessel = (vessel: any) => {
-
     setEditingVessel(vessel);
     setFormData({
       name: vessel.name,
@@ -393,32 +489,44 @@ const Fleet = () => {
       type: vessel.type,
       capacity: vessel.capacity.toString(),
       documents: vessel.documents || [],
-      image: vessel.image ?? null,
+      image: null, // No establecer image aquí para evitar conflictos
       armador: vessel.user_id.toString(),
     });
 
-    setUploadedImage(vessel.image ?? null,)
+    // Usar la imagen existente si está disponible
+    if (vessel.logo || vessel.image) {
+      setUploadedImage(vessel.logo || vessel.image);
+    }
 
-
+    // Manejar documentos existentes
     if (vessel.documents && vessel.documents.length > 0) {
       setDocuments(vessel.documents.map((doc: any, index: number) => {
-        // Formatear la fecha para el input type="date" (YYYY-MM-DD)
         const expirationDate = doc.expirationDate
           ? new Date(doc.expirationDate).toISOString().split('T')[0]
           : '';
 
         return {
           id: doc.id?.toString() || `doc-${index}`,
-          file: null, // No cargamos el file ya que es complejo
+          file: null, // Mantener como null para documentos existentes
           expirationDate: expirationDate,
           name: doc.name || '',
-          type: doc.type || doc.name?.split('.').pop() || '', // Inferir tipo de la extensión
+          type: doc.type || doc.name?.split('.').pop() || '',
           expires: doc.expires !== undefined ? doc.expires : true,
-          listDocumentId: doc.listDocumentId.toString()
+          listDocumentId: doc.listDocumentId?.toString() || '',
+          shareWith: doc.shareWith || [] // Mantener los roles del documento
         };
       }));
     } else {
-      setDocuments([{ id: '1', file: null, expirationDate: '', name: '', type: '', expires: true, listDocumentId: '', shareWith: [] }]);
+      setDocuments([{
+        id: '1',
+        file: null,
+        expirationDate: '',
+        name: '',
+        type: '',
+        expires: true,
+        listDocumentId: '',
+        shareWith: []
+      }]);
     }
 
     setShowForm(true);
@@ -597,13 +705,14 @@ const Fleet = () => {
     }
   };
 
+
   const validateCurrentDocuments = (): boolean => {
     const incompleteDocuments = documents.filter(docItem => {
       const hasFile = docItem.file !== null;
       const hasExistingFile = !!docItem.name;
 
-
       if (docItem.expires) {
+        // Para documentos que expiran, necesitan fecha y archivo (nuevo o existente)
         if ((hasFile || hasExistingFile) && !docItem.expirationDate) {
           return true;
         }
@@ -611,6 +720,7 @@ const Fleet = () => {
           return true;
         }
       } else {
+        // Para documentos que no expiran, solo necesitan archivo (nuevo o existente)
         if (!hasFile && !hasExistingFile) {
           return true;
         }
@@ -628,38 +738,8 @@ const Fleet = () => {
       return false;
     }
 
-    const firstDocument = documents[0];
-    const firstHasFile = firstDocument.file !== null;
-    const firstHasExistingFile = !!firstDocument.name;
-
-    if ((!firstHasFile && !firstHasExistingFile) ||
-      (firstDocument.expires && !firstDocument.expirationDate)) {
-      toast({
-        title: "Documento requerido",
-        description: "Debe completar la información del primer documento antes de continuar",
-        variant: "destructive",
-      });
-      return false;
-    }
-
-    const lastDocument = documents[documents.length - 1];
-    const lastHasFile = lastDocument.file !== null;
-    const lastHasExistingFile = !!lastDocument.name;
-
-    if ((lastHasFile || lastHasExistingFile) &&
-      lastDocument.expires &&
-      !lastDocument.expirationDate) {
-      toast({
-        title: "Documento incompleto",
-        description: "Complete la información del documento actual antes de agregar uno nuevo",
-        variant: "destructive",
-      });
-      return false;
-    }
-
     return true;
   };
-
 
   // Función auxiliar para validar fechas
   const isValidDate = (dateString: string): boolean => {
@@ -728,8 +808,18 @@ const Fleet = () => {
     }
   };
 
-  const handleRolesChange = (selectedRoleIds: string[]) => {
-    setFormData(prev => ({ ...prev, roles: selectedRoleIds }));
+  // const handleRolesChange = (selectedRoleIds: string[]) => {
+  //   setFormData(prev => ({ ...prev, roles: selectedRoleIds }));
+  // };
+
+  const handleRolesChange = (docId: string, selectedRoleIds: (string | number)[]) => {
+    setDocuments(prev =>
+      prev.map(doc =>
+        doc.id === docId
+          ? { ...doc, shareWith: selectedRoleIds }
+          : doc
+      )
+    );
   };
 
 
@@ -1092,17 +1182,17 @@ const Fleet = () => {
 
                           <div className="flex-1 space-y-2 min-w-0">
                             <div className="flex items-center gap-2 mb-4">
-                              <Label>Compartir con</Label>
+                              <Label htmlFor={`roles-${docItem.id}`}>Compartir con</Label>
                             </div>
                             <MultiSelect
+                              id={`roles-${docItem.id}`}
                               options={roles}
-                              selectedValues={selectedRoles}
-                              onValueChange={setSelectedRoles}
+                              selectedValues={docItem.shareWith} // Usar shareWith del documento específico
+                              onValueChange={(values) => handleRolesChange(docItem.id, values)} // Pasar docId
                               placeholder="Seleccionar roles..."
-                              displayKey="name" // Mostrará la propiedad 'name'
+                              displayKey="name"
                               showBadgeCount={true}
                             />
-
                           </div>
 
 

@@ -11,8 +11,7 @@ export interface IUser {
   working_days?: number;
   rest_days?: number;
   status?: string;
-  created_at?: string;
-  armador_id?: number;
+  created_at?: string
   role : {
     id: number,
     name: string

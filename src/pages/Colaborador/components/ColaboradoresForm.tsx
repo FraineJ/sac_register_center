@@ -6,10 +6,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
 import { useToast } from "@/hooks/use-toast";
-import { rolService } from "@/services/rol.services";
 import { userService } from "@/services/user.services";
 import { IUser } from "@/pages/Users/interfaces/user.interface";
 import { ArrowLeft } from "lucide-react";
+import { clientService } from "@/services/client.services";
 
 interface UserFormProps {
   user?: IUser;
@@ -22,6 +22,8 @@ interface Role {
   name: string;
 }
 
+
+
 export function UserForm({ user, onSubmit, onCancel }: UserFormProps) {
   const { toast } = useToast();
   const [formData, setFormData] = useState({
@@ -29,19 +31,21 @@ export function UserForm({ user, onSubmit, onCancel }: UserFormProps) {
     last_name: '',
     phone_number: '',
     email: '',
-    role_id: 0,
+    armador_id: 0,
     documentType: 'CC',
     identification: '',
   });
 
-  const [roles, setRoles] = useState<Role[]>([]);
+
+  const [armador, setArmador] = useState<IUser[]>([]);
+
   const [loadingRoles, setLoadingRoles] = useState(true);
   const [isFormReady, setIsFormReady] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     const loadData = async () => {
-      await listRoles();
+      await listArmadores();
 
       if (user) {
         setFormData({
@@ -49,7 +53,7 @@ export function UserForm({ user, onSubmit, onCancel }: UserFormProps) {
           last_name: user.last_name || '',
           phone_number: user.phone_number || '',
           email: user.email,
-          role_id: user.role_id,
+          armador_id: user.armador_id,
           documentType: user.documentType || 'CC',
           identification: user.identification || '',
         });
@@ -71,7 +75,7 @@ export function UserForm({ user, onSubmit, onCancel }: UserFormProps) {
       newErrors.email = 'El correo no es válido';
     }
     if (!formData.phone_number?.trim()) newErrors.phone_number = 'El teléfono es requerido';
-    if (!formData.role_id) newErrors.role_id = 'El rol es requerido';
+    if (!formData.armador_id) newErrors.armador_id = 'El rol es requerido';
     if (!formData.documentType) newErrors.tipoDocumento = 'El tipo de documento es requerido';
     if (!formData.identification) newErrors.identification = 'La identificación es requerida';
 
@@ -91,6 +95,7 @@ export function UserForm({ user, onSubmit, onCancel }: UserFormProps) {
         phone_number: formData.phone_number || null,
         documentType: formData.documentType,
         identification: formData.identification,
+        armador_id: formData.armador_id
       };
 
       let response;
@@ -101,17 +106,17 @@ export function UserForm({ user, onSubmit, onCancel }: UserFormProps) {
         if (response.status == 200 || response.status == 201) {
 
           toast({
-            title: "Usuario actualizado",
+            title: "Colaboradores actualizado",
             description: "Los datos del usuario se han actualizado correctamente",
           });
         }
 
       } else {
-        response = await userService.create(userData);
+        response = await userService.createCollaborators(userData);
 
         if (response.status == 200 || response.status == 201) {
           toast({
-            title: "Usuario registrado",
+            title: "Colaboradores registrado",
             description: "El nuevo usuario se ha registrado exitosamente",
           });
         }
@@ -140,19 +145,14 @@ export function UserForm({ user, onSubmit, onCancel }: UserFormProps) {
     }
   };
 
-  const listRoles = async () => {
-    try {
-      setLoadingRoles(true);
-      const response = await rolService.list();
-      setRoles(response.data);
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "No se pudieron cargar los roles",
-        variant: "destructive",
-      });
-    } finally {
-      setLoadingRoles(false);
+
+  const listArmadores = async () => {
+
+
+    const response = await clientService.list();
+    if (response.status == 200 || response.status == 201) {
+
+      setArmador(response.data)
     }
   };
 
@@ -175,7 +175,7 @@ export function UserForm({ user, onSubmit, onCancel }: UserFormProps) {
             >
               <ArrowLeft className="h-4 w-4" />
             </Button>
-            <h1 className="text-3xl font-bold text-foreground">Usuario</h1>
+            <h1 className="text-3xl font-bold text-foreground">Colaboradores</h1>
           </div>
 
         </div>
@@ -184,7 +184,7 @@ export function UserForm({ user, onSubmit, onCancel }: UserFormProps) {
       <Card className="w-full  mx-auto">
         <CardHeader>
           <CardTitle className="text-xl font-semibold text-foreground">
-            {user ? 'Editar Usuario' : 'Registrar Nuevo Usuario'}
+            {user ? 'Editar Colaboradores' : 'Registrar Nuevo Colaboradores'}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -193,6 +193,30 @@ export function UserForm({ user, onSubmit, onCancel }: UserFormProps) {
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+
+                {/* Rol */}
+                {/* Rol */}
+                <div className="space-y-2">
+                  <Label htmlFor="armador_id">Seleccionar Armador *</Label>
+                  <Select
+                    value={formData.armador_id !== 0 ? String(formData.armador_id) : undefined}
+                    onValueChange={(value) => handleInputChange('armador_id', parseInt(value))}
+                  >
+                    <SelectTrigger className={errors.armador_id ? "border-destructive" : ""}>
+                      <SelectValue placeholder={loadingRoles ? "Seleccione un armador" : "Cargando armadores..."} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {armador.map((elent) => (
+                        <SelectItem key={elent.id} value={String(elent.id)}>
+                          {elent.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {errors.armador_id && <p className="text-sm text-destructive">{errors.armador_id}</p>}
+                </div>
+
                 {/* Nombre */}
                 <div className="space-y-2">
                   <Label htmlFor="name">Nombre *</Label>
@@ -276,27 +300,7 @@ export function UserForm({ user, onSubmit, onCancel }: UserFormProps) {
                   {errors.identification && <p className="text-sm text-destructive">{errors.identification}</p>}
                 </div>
 
-                {/* Rol */}
-                {/* Rol */}
-                <div className="space-y-2">
-                  <Label htmlFor="role_id">Rol <small>(Cargo)</small> *</Label>
-                  <Select
-                    value={formData.role_id !== 0 ? String(formData.role_id) : undefined}
-                    onValueChange={(value) => handleInputChange('role_id', parseInt(value))}
-                  >
-                    <SelectTrigger className={errors.role_id ? "border-destructive" : ""}>
-                      <SelectValue placeholder={loadingRoles ? "Cargando roles..." : "Seleccione un rol"} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {roles.map((role) => (
-                        <SelectItem key={role.id} value={String(role.id)}>
-                          {role.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {errors.role_id && <p className="text-sm text-destructive">{errors.role_id}</p>}
-                </div>
+
               </div>
 
 
@@ -317,7 +321,7 @@ export function UserForm({ user, onSubmit, onCancel }: UserFormProps) {
                   type="submit"
                   className="bg-primary text-primary-foreground hover:bg-primary"
                 >
-                  {user ? 'Actualizar Usuario' : 'Registrar Usuario'}
+                  {user ? 'Actualizar Colaboradores' : 'Registrar Colaboradores'}
                 </Button>
               </div>
             </form>

@@ -14,6 +14,16 @@ class UserService {
         }
     }
 
+    async createCollaborators(data: any) {
+        try {
+            const response = await apiClient.post(BACKEND_ENDPOINTS.CREATE_CONTRIBUTORS, data, );
+
+            return response;
+        } catch (error) {
+            this.handleError(error);
+        }
+    }
+
     async list() {
         try {
             const response = await apiClient.get(BACKEND_ENDPOINTS.GET_USERS);
@@ -68,6 +78,16 @@ class UserService {
     async deleteUserWithSchedule(userId: string) {
         try {
             const response = await apiClient.delete(`${BACKEND_ENDPOINTS.DELETE_USERS_WITH_SCHEDULE}/${userId}`);
+
+            return response;
+        } catch (error) {
+            this.handleError(error);
+        }
+    }
+
+    async listcCollaborators() {
+        try {
+            const response = await apiClient.get(BACKEND_ENDPOINTS.GET_CONTRIBUTORS);
 
             return response;
         } catch (error) {

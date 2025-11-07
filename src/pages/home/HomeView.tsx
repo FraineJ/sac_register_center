@@ -91,6 +91,11 @@ export function HomeView() {
     navigate(`/fleet-details/${vesselId}`);
   };
 
+  const truncateText = (text, maxLength) => {
+    return text.length > maxLength ? `${text.substring(0, maxLength)}...` : text;
+  };
+
+
   return (
     <main className="min-h-screen bg-slate-50">
       {/* Header */}
@@ -128,8 +133,8 @@ export function HomeView() {
               <tr className="text-sm font-medium text-white bg-primary">
                 <th scope="col" className="px-4 py-3 text-center">Nombre de la embarcación</th>
                 <th scope="col" className="px-4 py-3 text-center">Compañías</th>
-                <th scope="col" className="px-4 py-3 text-center">Nombre del certificado</th>
                 <th scope="col" className="px-4 py-3 text-center">Nombre del documento</th>
+                <th scope="col" className="px-4 py-3 text-center">N° consecutivo</th>
                 <th scope="col" className="px-4 py-3 text-center">Fecha de expiración</th>
                 <th scope="col" className="px-4 py-3 text-center">Inicio de ventana</th>
                 <th scope="col" className="px-4 py-3 text-center">Fin de ventana</th>
@@ -156,7 +161,9 @@ export function HomeView() {
                     </td>
 
                     <td className="px-4 py-4 text-center">
-                      <span className="text-sky-600">{row.name}</span>
+                      <span className="text-sky-600">
+                        {truncateText(row.name, 20)}
+                      </span>
                     </td>
 
                     <td className="px-4 py-4 text-center">
