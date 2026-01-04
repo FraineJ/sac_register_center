@@ -41,6 +41,8 @@ interface IDocument {
   expires: boolean;
   listDocumentId: string,
   shareWith: (string | number)[];
+  shareWithError?: string; // Nuevo campo para mostrar error
+
 }
 
 interface IFleet {
@@ -284,86 +286,6 @@ const Fleet = () => {
     return !Object.values(newErrors).some(error => error !== '');
   };
 
-  // const handleSubmit = async (e: React.FormEvent) => {
-  //   e.preventDefault();
-
-  //   if (!validateForm()) {
-  //     toast({
-  //       title: "Error de validación",
-  //       description: "Por favor complete todos los campos requeridos",
-  //       variant: "destructive",
-  //     });
-  //     return;
-  //   }
-
-
-
-  //   setLoading(true);
-
-  //   try {
-  //     const formDataToSend = new FormData();
-
-  //     // 1. Agregar la imagen como "logo" (nombre que espera el backend)
-  //     if (formData.image) {
-  //       formDataToSend.append('logo', formData.image);
-  //     }
-
-  //     // 2. Agregar campos individuales del fleet (no como JSON string)
-  //     formDataToSend.append('name', formData.name);
-  //     formDataToSend.append('identification', formData.identification);
-  //     formDataToSend.append('flag', formData.flag);
-  //     formDataToSend.append('type', formData.type);
-  //     formDataToSend.append('capacity', formData.capacity);
-  //     formDataToSend.append('user_id', formData.armador);
-
-  //     // 3. Agregar documentos como archivos y metadatos
-  //     const validDocuments = documents.filter(doc => doc.file && doc.expirationDate);
-
-  //     validDocuments.forEach((doc, index) => {
-  //       if (doc.file) {
-  //         // Agregar el archivo del documento
-  //         formDataToSend.append(`documents[${index}][file]`, doc.file);
-  //         // Agregar metadatos del documento
-  //         formDataToSend.append(`documents[${index}][name]`, doc.name || doc.file.name);
-  //         formDataToSend.append(`documents[${index}][expirationDate]`, doc.expirationDate);
-  //         formDataToSend.append(`documents[${index}][expires]`, doc.expires.toString());
-  //         formDataToSend.append(`documents[${index}][listDocumentId]`, doc.listDocumentId);
-  //         formDataToSend.append(`documents[${index}][shareWith]`, JSON.stringify(doc.shareWith));
-
-  //       }
-  //     });
-
-  //     if (editingVessel) {
-  //       await handleUpdateVessel(editingVessel.id, formDataToSend);
-  //     } else {
-
-  //       const hasInvalidDocuments = documents.some(doc =>
-  //         (doc.file && doc.expires && !doc.expirationDate) ||
-  //         (!doc.file && doc.expirationDate)
-  //       );
-
-  //       if (hasInvalidDocuments) {
-  //         toast({
-  //           title: "Error en documentos",
-  //           description: "Cada documento debe tener tanto archivo como fecha de vencimiento",
-  //           variant: "destructive",
-  //         });
-  //         return;
-  //       }
-  //       await handleCreateVessel(formDataToSend); // Cambiado a formDataToSend
-  //     }
-
-  //     resetForm();
-
-  //   } catch (error) {
-  //     handleSubmitError(error);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
-
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -373,6 +295,10 @@ const Fleet = () => {
         description: "Por favor complete todos los campos requeridos",
         variant: "destructive",
       });
+      return;
+    }
+
+    if (!validateAllDocuments()) {
       return;
     }
 
@@ -553,7 +479,7 @@ const Fleet = () => {
       identification: vessel.identification,
       flag: vessel.flag,
       type: vessel.type,
-      capacity: vessel.capacity.toString(),
+      capacity: vessel.capacity != null ? vessel.capacity.toString() : "",
       documents: vessel.documents || [],
       image: null, // No establecer image aquí para evitar conflictos
       armador: vessel.user_id.toString(),
@@ -776,6 +702,12 @@ const Fleet = () => {
     const incompleteDocuments = documents.filter(docItem => {
       const hasFile = docItem.file !== null;
       const hasExistingFile = !!docItem.name;
+      const hasShareWith = docItem.shareWith && docItem.shareWith.length > 0;
+
+      // Validar que tenga al menos una opción en shareWith
+      if (!hasShareWith) {
+        return true;
+      }
 
       if (docItem.expires) {
         // Para documentos que expiran, necesitan fecha y archivo (nuevo o existente)
@@ -882,10 +814,50 @@ const Fleet = () => {
     setDocuments(prev =>
       prev.map(doc =>
         doc.id === docId
-          ? { ...doc, shareWith: selectedRoleIds }
+          ? {
+            ...doc,
+            shareWith: selectedRoleIds,
+            shareWithError: selectedRoleIds.length > 0 ? '' : doc.shareWithError // Limpiar error si hay selección
+          }
           : doc
       )
     );
+  };
+
+  const validateAllDocuments = (): boolean => {
+    let isValid = true;
+
+    // Limpiar errores previos
+    setDocuments(prev => prev.map(doc => ({
+      ...doc,
+      shareWithError: ''
+    })));
+
+    // Validar cada documento
+    const updatedDocuments = documents.map(docItem => {
+      const hasShareWith = docItem.shareWith && docItem.shareWith.length > 0;
+
+      if (!hasShareWith) {
+        isValid = false;
+        return {
+          ...docItem,
+          shareWithError: 'Debe seleccionar al menos una opción'
+        };
+      }
+
+      return docItem;
+    });
+
+    if (!isValid) {
+      setDocuments(updatedDocuments);
+      toast({
+        title: "Error en documentos",
+        description: "Cada documento debe tener al menos una opción seleccionada en 'Compartir con'",
+        variant: "destructive",
+      });
+    }
+
+    return isValid;
   };
 
 
@@ -1156,7 +1128,7 @@ const Fleet = () => {
                           </div>
 
                           <div className="w-48 space-y-2">
-                            <Label htmlFor={`listDocumentId-${docItem.id}`}>Tipo de documento *</Label>
+                            <Label htmlFor={`listDocumentId-${docItem.id}`}>Nombre del documento *</Label>
                             <Select
                               value={docItem.listDocumentId}
                               onValueChange={(value) => updateDocument(docItem.id, 'listDocumentId', value)}
@@ -1248,16 +1220,22 @@ const Fleet = () => {
 
                           <div className="flex-1 space-y-2 min-w-0">
                             <div className="flex items-center gap-2 mb-4">
-                              <Label htmlFor={`roles-${docItem.id}`}>Compartir con</Label>
+                              <Label htmlFor={`roles-${docItem.id}`}>Compartir con *</Label>
+                              {docItem.shareWithError && (
+                                <span className="text-xs text-destructive ml-2">⚠️ {docItem.shareWithError}</span>
+                              )}
                             </div>
                             <MultiSelect
                               id={`roles-${docItem.id}`}
                               options={roles}
-                              selectedValues={docItem.shareWith} // Usar shareWith del documento específico
-                              onValueChange={(values) => handleRolesChange(docItem.id, values)} // Pasar docId
+                              selectedValues={docItem.shareWith}
+                              onValueChange={(values) => handleRolesChange(docItem.id, values)}
                               placeholder="Seleccionar roles..."
                               displayKey="name"
                               showBadgeCount={true}
+                              className={docItem.shareWithError ?
+                                "border-red-500 border-2 rounded-md focus:border-red-500 focus:ring-red-500" :
+                                ""}
                             />
                           </div>
 
