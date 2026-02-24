@@ -1293,10 +1293,9 @@ const Fleet = () => {
                       size="sm"
                       onClick={addDocument}
                       className="flex items-center gap-2"
-                      disabled={documents.length >= 5}
                     >
                       <Plus className="h-4 w-4" />
-                      Agregar documento {documents.length >= 5 && '(Máximo 5)'}
+                      Agregar documento
                     </Button>
                   </div>
                 </div>
