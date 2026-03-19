@@ -173,6 +173,7 @@ const Fleet = () => {
     "Crucero",
     "Ferry",
     "Remolcador",
+  
     "Pasaje",
     "Transporte mixto",
     "Carga",
@@ -182,6 +183,7 @@ const Fleet = () => {
     "Remolcadores",
     "Recreo o deportivas",
     "Servicios especiales",
+
     "Lancha",
     "Buque",
     "Carga general",
@@ -234,6 +236,23 @@ const Fleet = () => {
     "Servicios gubernamentales",
     "Servicios no gubernamentales"
   ];
+
+  // Mantener el catálogo histórico completo, pero limitar opciones visibles en UI.
+  const allowedVesselTypes = [
+    "Pasaje",
+    "Transporte mixto",
+    "Carga",
+    "Tanqueros",
+    "Artefactos navales",
+    "Pesca",
+    "Remolcadores",
+    "Recreo o deportivas",
+    "Servicios especiales",
+  ];
+
+  const visibleVesselTypes = vesselTypes.filter((type) =>
+    allowedVesselTypes.includes(type)
+  );
 
   const addDocument = () => {
     // Validar documentos actuales antes de agregar uno nuevo
@@ -1066,7 +1085,7 @@ const Fleet = () => {
                             <SelectValue placeholder="Seleccione el tipo de embarcación" />
                           </SelectTrigger>
                           <SelectContent>
-                            {vesselTypes.map((type) => (
+                            {visibleVesselTypes.map((type) => (
                               <SelectItem key={type} value={type}>
                                 {type}
                               </SelectItem>

@@ -167,7 +167,7 @@ export function HomeView() {
                     </td>
 
                     <td className="px-4 py-4 text-center">
-                      <span className="text-sky-600">{formatDate(row.expirationDate)}</span>
+                      <span className="text-sky-600">{row.expirationDate  ? formatDate(row.expirationDate) : 'Sin fecha'}</span>
                     </td>
 
                     <td className="px-4 py-4 text-center">
